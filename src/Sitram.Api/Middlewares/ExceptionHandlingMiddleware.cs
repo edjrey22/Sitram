@@ -1,6 +1,8 @@
 using System.Net;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Sitram.Application.Common.Exceptions;
 using Sitram.Domain.Exceptions;
 
 namespace Sitram.Api.Middlewares;
@@ -25,7 +27,10 @@ public sealed class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Ex
             var (status, title) = ex switch
             {
                 ValidationException => (HttpStatusCode.BadRequest, "Error de validación"),
+                AutenticacionInvalidaException => (HttpStatusCode.Unauthorized, "Autenticación inválida"),
+                NotFoundException => (HttpStatusCode.NotFound, "Recurso no encontrado"),
                 TransicionInvalidaException => (HttpStatusCode.Conflict, "Transición de estado inválida"),
+                DbUpdateConcurrencyException => (HttpStatusCode.Conflict, "Conflicto de concurrencia; vuelva a intentarlo"),
                 DomainException => (HttpStatusCode.BadRequest, "Regla de negocio no satisfecha"),
                 _ => (HttpStatusCode.InternalServerError, "Ocurrió un error inesperado"),
             };

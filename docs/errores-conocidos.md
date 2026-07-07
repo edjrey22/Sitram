@@ -144,6 +144,19 @@
 - **Solución**: probar **comportamiento** (entradas → salidas y efectos), no la estructura
   interna; usar mocks solo para las dependencias externas (puertos), no para el dominio.
 
+### 5.3 `WebApplicationFactory` recreando el esquema en paralelo entre clases de prueba
+- **Síntoma**: pruebas de integración que pasan solas o en su propia clase, pero fallan
+  (errores de conexión/esquema) al ejecutar la suite completa; no siempre el mismo test falla.
+- **Causa**: cada clase de prueba con `IClassFixture<WebApplicationFactory<T>>` crea **su propia
+  instancia** de la factory. Como xUnit ejecuta **clases de prueba en paralelo** por defecto,
+  dos factories llaman `EnsureDeleted()`/`Migrate()` **a la vez** sobre la misma base de datos
+  de prueba, y una borra el esquema mientras la otra lo usa.
+- **Solución**: agrupar todas las clases que comparten la BD de prueba en una **única
+  `ICollectionFixture`** (`[CollectionDefinition]` + `[Collection("...")]` en cada clase), de
+  modo que la factory —y la recreación del esquema— se instancie **una sola vez** por ejecución.
+  Complementa a 5.1 (Respawn): aquí el problema es la *recreación* del esquema, no solo el
+  estado de los datos.
+
 ---
 
 ## Plantilla para nuevas entradas

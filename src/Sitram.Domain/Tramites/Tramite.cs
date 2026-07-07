@@ -32,6 +32,7 @@ public sealed class Tramite : AggregateRoot<TramiteId>
         Codigo = codigo;
         Estado = EstadoTramite.Borrador;
         CreadoUtc = DateTime.UtcNow;
+        RaiseDomainEvent(new TramiteCreadoEvent(Id));
     }
 
     /// <summary>Crea un trámite nuevo en estado <see cref="EstadoTramite.Borrador"/> (RF-020).</summary>
@@ -91,7 +92,9 @@ public sealed class Tramite : AggregateRoot<TramiteId>
         if (!estadosPermitidos.Contains(Estado))
             throw new TransicionInvalidaException(Estado.ToString(), nuevo.ToString());
 
-        _historial.Add(new Actuacion(Estado, nuevo, comentario));
+        var estadoAnterior = Estado;
+        _historial.Add(new Actuacion(estadoAnterior, nuevo, comentario));
         Estado = nuevo;
+        RaiseDomainEvent(new TramiteEstadoCambiadoEvent(Id, estadoAnterior, nuevo, comentario));
     }
 }

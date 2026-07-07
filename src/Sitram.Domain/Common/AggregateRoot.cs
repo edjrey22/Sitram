@@ -1,7 +1,7 @@
 namespace Sitram.Domain.Common;
 
 /// <summary>Raíz de un agregado: única puerta de entrada y controlador de invariantes.</summary>
-public abstract class AggregateRoot<TId> : Entity<TId> where TId : notnull
+public abstract class AggregateRoot<TId> : Entity<TId>, IHasDomainEvents where TId : notnull
 {
     private readonly List<IDomainEvent> _domainEvents = new();
 

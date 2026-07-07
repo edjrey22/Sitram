@@ -1,7 +1,15 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using Sitram.Api.Middlewares;
+using Sitram.Api.Services;
 using Sitram.Application;
+using Sitram.Application.Common.Interfaces;
 using Sitram.Infrastructure;
+using Sitram.Infrastructure.Identity;
+using Sitram.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,8 +25,40 @@ builder.Services.AddInfrastructure(builder.Configuration);
 // API
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
-builder.Services.AddAuthentication();   // TODO(SITRAM): AddJwtBearer con emisor/clave (ADR-0005, Sprint 1)
-builder.Services.AddAuthorization();    // TODO(SITRAM): políticas RBAC por claim de permiso
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+
+// Autenticación JWT (ADR-0005). La clave firmante viene de configuración (User Secrets en
+// desarrollo, variables de entorno en producción) — nunca hardcodeada (errores-conocidos 3.4).
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidateAudience = true,
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.FromSeconds(30),
+        };
+    });
+
+// Autorización RBAC por políticas de permiso, no por nombre de rol (ADR-0005).
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("TramiteIniciar", p => p.RequireClaim("permiso", "tramite:iniciar"))
+    .AddPolicy("TramiteEnviar", p => p.RequireClaim("permiso", "tramite:enviar"))
+    .AddPolicy("TramiteSubsanar", p => p.RequireClaim("permiso", "tramite:subsanar"))
+    .AddPolicy("TramiteConsultar", p => p.RequireClaim("permiso", "tramite:consultar"))
+    .AddPolicy("TramiteRecepcionar", p => p.RequireClaim("permiso", "tramite:recepcionar"))
+    .AddPolicy("TramiteEvaluar", p => p.RequireClaim("permiso", "tramite:evaluar"))
+    .AddPolicy("TramiteObservar", p => p.RequireClaim("permiso", "tramite:observar"))
+    .AddPolicy("TramiteAprobar", p => p.RequireClaim("permiso", "tramite:aprobar"))
+    .AddPolicy("TramiteRechazar", p => p.RequireClaim("permiso", "tramite:rechazar"))
+    .AddPolicy("AuditoriaLeer", p => p.RequireClaim("permiso", "auditoria:leer"));
 
 var app = builder.Build();
 
@@ -30,10 +70,18 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsEnvironment("Testing"))
+    app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+// Semilla idempotente de roles y permisos (modelo-datos.md §6)
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<SitramDbContext>();
+    await IdentitySeeder.SeedAsync(db);
+}
 
 app.Run();
 
