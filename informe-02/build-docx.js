@@ -4,8 +4,13 @@ const {
   Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
   Header, Footer, AlignmentType, LevelFormat, TabStopType,
   TableOfContents, HeadingLevel, BorderStyle, WidthType, ShadingType,
-  PageNumber, ExternalHyperlink,
+  PageNumber, ExternalHyperlink, ImageRun,
 } = require("docx");
+
+// ancho/alto (px) desde el chunk IHDR de un PNG (big-endian, offsets 16 y 20)
+function pngDims(buf) {
+  return { w: buf.readUInt32BE(16), h: buf.readUInt32BE(20) };
+}
 
 const DIR = __dirname;
 const CONTENT_WIDTH = 9026; // A4 (11906) - 2*1440 margenes
@@ -55,6 +60,15 @@ function parseInline(text, baseOpts = {}) {
 // una linea es "especial" (figura/tabla/nota) => sin sangria de primera linea
 function isCaption(t) {
   return /^(\*\*)?\s*(Figura|Tabla)\s+\d+/i.test(t) || /^\*Nota\./i.test(t);
+}
+
+// ¿la linea inicia un bloque nuevo? (para saber cuando cortar la union de un parrafo)
+function startsBlock(tr) {
+  return tr === "" || tr === "---"
+    || /^(#{1,4})\s+/.test(tr) || tr.startsWith("|") || tr.startsWith(">")
+    || tr.startsWith("```") || tr.startsWith("<") || tr.startsWith("&")
+    || tr.startsWith("![")
+    || /^[-*]\s+/.test(tr) || /^\d+\.\s+/.test(tr);
 }
 
 function bodyPara(text, { hangingRefs = false } = {}) {
@@ -161,6 +175,24 @@ function parseMarkdown(file, { startMarker = null, breakOnH2 = false, hangingRef
       i++; continue;
     }
 
+    // imagen embebida: ![alt](ruta)
+    const im = trimmed.match(/^!\[[^\]]*\]\(([^)]+)\)$/);
+    if (im) {
+      const imgPath = path.join(DIR, im[1]);
+      if (fs.existsSync(imgPath)) {
+        const data = fs.readFileSync(imgPath);
+        const { w, h } = pngDims(data);
+        const width = Math.min(w, 560);
+        const height = Math.round(h * (width / w));
+        out.push(new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 80, line: 240 },
+          children: [new ImageRun({ type: "png", data, transformation: { width, height } })],
+        }));
+      }
+      i++; continue;
+    }
+
     // tabla
     if (trimmed.startsWith("|")) {
       const tbl = [];
@@ -186,30 +218,41 @@ function parseMarkdown(file, { startMarker = null, breakOnH2 = false, hangingRef
       continue;
     }
 
-    // lista con vinetas
+    // lista con vinetas (une lineas de continuacion del mismo item)
     let lm = trimmed.match(/^[-*]\s+(.*)$/);
     if (lm) {
+      const buf = [lm[1]];
+      i++;
+      while (i < lines.length && !startsBlock(lines[i].trim())) { buf.push(lines[i].trim()); i++; }
       out.push(new Paragraph({
         numbering: { reference: "bullets", level: 0 },
         spacing: { after: 40, line: LINE },
-        children: parseInline(lm[1]),
+        children: parseInline(buf.join(" ")),
       }));
-      i++; continue;
+      continue;
     }
-    // lista numerada
+    // lista numerada (une lineas de continuacion del mismo item)
     lm = trimmed.match(/^\d+\.\s+(.*)$/);
     if (lm) {
+      const buf = [lm[1]];
+      i++;
+      while (i < lines.length && !startsBlock(lines[i].trim())) { buf.push(lines[i].trim()); i++; }
       out.push(new Paragraph({
         numbering: { reference: "nums", level: 0 },
         spacing: { after: 40, line: LINE },
-        children: parseInline(lm[1]),
+        children: parseInline(buf.join(" ")),
       }));
-      i++; continue;
+      continue;
     }
 
-    // parrafo normal
-    out.push(bodyPara(trimmed, { hangingRefs }));
-    i++;
+    // parrafo normal: une las lineas envueltas del mismo parrafo en uno solo
+    {
+      const buf = [trimmed];
+      i++;
+      while (i < lines.length && !startsBlock(lines[i].trim())) { buf.push(lines[i].trim()); i++; }
+      out.push(bodyPara(buf.join(" "), { hangingRefs }));
+    }
+    continue;
   }
   return out;
 }
@@ -346,6 +389,15 @@ const doc = new Document({
 });
 
 Packer.toBuffer(doc).then(buf => {
-  fs.writeFileSync(path.join(DIR, "SITRAM-Informe-02.docx"), buf);
-  console.log("OK -> SITRAM-Informe-02.docx (" + buf.length + " bytes)");
+  const target = path.join(DIR, "SITRAM-Informe-02.docx");
+  try {
+    fs.writeFileSync(target, buf);
+    console.log("OK -> SITRAM-Informe-02.docx (" + buf.length + " bytes)");
+  } catch (e) {
+    if (e.code === "EBUSY" || e.code === "EPERM") {
+      const alt = path.join(DIR, "SITRAM-Informe-02.NUEVO.docx");
+      fs.writeFileSync(alt, buf);
+      console.log("AVISO: el .docx estaba abierto/bloqueado. Escrito en SITRAM-Informe-02.NUEVO.docx (" + buf.length + " bytes)");
+    } else throw e;
+  }
 });

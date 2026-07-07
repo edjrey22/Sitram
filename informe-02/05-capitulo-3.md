@@ -91,6 +91,10 @@ problemas de usabilidad.
 La operacionalización traduce cada variable en dimensiones e indicadores medibles mediante
 instrumentos concretos:
 
+**Tabla 2**
+
+*Operacionalización de las variables*
+
 | Variable | Dimensión | Indicadores | Escala | Instrumento |
 |----------|-----------|-------------|--------|-------------|
 | X1 Desarrollo | Análisis | N.° de requisitos (RF/RNF); N.° de historias de usuario; N.° de actores | Razón | Ficha de análisis documental |
@@ -221,16 +225,7 @@ evidencia del proceso.
 
 *Ciclo de cuatro etapas del Spec-Driven Development (GitHub Spec Kit)*
 
-```
-  /specify         /plan            /tasks           /implement
-+----------+     +----------+     +----------+     +---------------+
-| spec.md  | --> | plan.md  | --> | tasks.md | --> | codigo + test |
-| QUE y    |     | COMO     |     | pasos    |     | verificado    |
-| POR QUE  |     | (diseno) |     | atomicos |     |               |
-+----------+     +----------+     +----------+     +---------------+
-      |                |               |                   |
-      +----------------+--- revision --+-------------------+
-```
+![Figura 2](figuras/fig2-sdd.png)
 
 *Nota.* Elaboración propia con base en el flujo de GitHub Spec Kit.
 
@@ -246,7 +241,9 @@ El trabajo se organiza en **sprints** con la siguiente estructura:
 - **Sprint Review:** al final de cada sprint se presenta el incremento funcional.
 - **Sprint Retrospective:** se reflexiona sobre el proceso para mejorar en el siguiente ciclo.
 
-**Planificación referencial de sprints:**
+**Tabla 3**
+
+*Planificación referencial de sprints*
 
 | Sprint | Objetivo | Módulos / historias |
 |--------|----------|---------------------|

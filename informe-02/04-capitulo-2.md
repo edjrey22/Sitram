@@ -253,22 +253,7 @@ que desacopla al emisor de una petición de su manejador.
 
 *Flujo de un comando bajo el patrón CQRS en SITRAM*
 
-```
-Ciudadano ──HTTP POST /tramites──> TramitesController
-                                        |
-                                        v
-                        IniciarTramiteCommand ──> MediatR
-                                                    |
-                                    +---------------+
-                                    v
-                        IniciarTramiteCommandHandler
-                                    |  (valida y crea el agregado Tramite)
-                                    v
-                        ITramiteRepository.AddAsync()
-                                    |
-                                    v
-                                SQL Server
-```
+![Figura 1](figuras/fig1-cqrs.png)
 
 *Nota.* Elaboración propia a partir del diseño arquitectónico del proyecto.
 
@@ -436,6 +421,10 @@ pruebas— es un indicador de la calidad y la mantenibilidad del software.
 
 La selección de las tecnologías se realizó considerando los requisitos de seguridad,
 rendimiento, mantenibilidad y las capacidades de cumplimiento normativo del proyecto.
+
+**Tabla 1**
+
+*Comparación y justificación del stack tecnológico*
 
 | Necesidad | Alternativas evaluadas | Elección y justificación |
 |-----------|------------------------|--------------------------|

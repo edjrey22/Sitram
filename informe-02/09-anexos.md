@@ -385,26 +385,7 @@ datos personales, y la tabla de auditoría inmutable.
 
 *Diagrama Entidad-Relación (vista resumida en torno al agregado `Tramite`)*
 
-```
-              +-----------+          +--------------+
-              | CIUDADANO |          | TIPO_TRAMITE |
-              +-----+-----+          +------+-------+
-                    | inicia               | clasifica
-                    v                      v
-                 +----------------------------+
-                 |          TRAMITE           |  (agregado raiz)
-                 |  Estado - Codigo - RowVer  |
-                 +--+----+-----+-----+-----+--+
-                    |    |     |     |     |
-        +-----------+    |     |     |     +-------------+
-        v                v     v     v                   v
-   +----------+   +------+ +-------+ +----------+  +----------------+
-   | DOCUMENTO|   | PAGO | | ACTUA-| |RESOLUCION|  | EVENTO_AUDITOR.|
-   +----------+   +------+ | CION  | +----------+  +----------------+
-                          +-------+
-   (+ CONSENTIMIENTO, USUARIO/ROL/PERMISO, REQUISITO_DOCUMENTO,
-      PASO_FLUJO e INCIDENTE_SEGURIDAD = 17 entidades en total)
-```
+![Figura 5](figuras/fig5-der.png)
 
 *Nota.* Elaboración propia. El diagrama entidad-relación completo, con todos los atributos,
 claves e índices, se detalla en la documentación de ingeniería del proyecto (`docs/modelo-datos.md`).

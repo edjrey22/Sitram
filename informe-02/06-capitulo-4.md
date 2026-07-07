@@ -36,6 +36,10 @@ conjunto de privilegios diferenciados:
 **b) Requisitos funcionales.** Se especificaron **42 requisitos funcionales**, distribuidos en
 siete módulos:
 
+**Tabla 4**
+
+*Requisitos funcionales por módulo*
+
 | Módulo | Requisitos | Cantidad |
 |--------|-----------|----------|
 | Gestión de identidad y acceso | RF-001 a RF-006 | 6 |
@@ -49,6 +53,10 @@ siete módulos:
 
 **c) Requisitos no funcionales.** Se especificaron **26 requisitos no funcionales**, agrupados
 en siete categorías de calidad:
+
+**Tabla 5**
+
+*Requisitos no funcionales por categoría de calidad*
 
 | Categoría | Cantidad |
 |-----------|----------|
@@ -87,24 +95,7 @@ consumiendo ambas la misma capa `Application`.
 
 *Arquitectura en capas de SITRAM (Clean Architecture)*
 
-```
-+-----------------------------------------------------------+
-|                   API / Presentation                      |  Blazor + ASP.NET Core Web API
-|        Controllers - Middlewares - Filtros - DTOs         |
-|   +---------------------------------------------------+   |
-|   |                  Application                       |   |  Casos de uso (CQRS)
-|   |       Commands - Queries - Handlers - Ports        |   |
-|   |    +-----------------------------------------+     |   |
-|   |    |                 Domain                   |    |   |  Nucleo (sin dependencias)
-|   |    |   Entidades - Value Objects - Agregados  |    |   |
-|   |    |         Reglas - Eventos de dominio      |    |   |
-|   |    +-----------------------------------------+     |   |
-|   +---------------------------------------------------+   |
-|                    Infrastructure                         |  EF Core - SQL Server - Serilog
-|         Repositorios - DbContext - Servicios externos     |
-+-----------------------------------------------------------+
-          Las dependencias apuntan hacia el Domain
-```
+![Figura 3](figuras/fig3-arquitectura.png)
 
 *Nota.* Elaboración propia. Ver ADR-0002 (Clean Architecture + DDD).
 
@@ -133,22 +124,7 @@ integridad del proceso.
 
 *Máquina de estados del trámite*
 
-```
- +----------+   enviar    +-----------+  revisar   +--------------+
- | Borrador | ----------> | Recibido  | ---------> |  EnRevision  |
- +----------+             +-----------+            +------+-------+
-                                                          |
-                      +--------------+-------------+------+
-                      v              v             v
-                +----------+   +-----------+  +-----------+
-                | Aprobado |   | Rechazado |  | Observado |
-                +----------+   +-----------+  +-----+-----+
-                                                    | subsanar
-                                                    v
-                                             +--------------+
-                                             |  EnRevision  |
-                                             +--------------+
-```
+![Figura 4](figuras/fig4-estados.png)
 
 *Nota.* Elaboración propia. Toda transición no representada es rechazada por el agregado `Tramite`.
 
@@ -250,6 +226,10 @@ puntaje (0–100) se interpreta según la escala de referencia. Responde al obje
 
 La siguiente matriz consolida la correspondencia entre cada objetivo específico, la variable
 que lo mide y el resultado obtenido, evidenciando la coherencia integral del estudio:
+
+**Tabla 6**
+
+*Matriz de trazabilidad de resultados*
 
 | Objetivo | Variable | Indicador principal | Resultado |
 |----------|----------|---------------------|-----------|
