@@ -1,0 +1,31 @@
+# ---- .NET ----
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+*.user
+*.suo
+*.userprefs
+.vs/
+project.lock.json
+project.assets.json
+*.nupkg
+
+# ---- Rider / VS Code ----
+.idea/
+.vscode/
+
+# ---- Secretos y configuración local (nunca versionar) ----
+appsettings.*.local.json
+secrets.json
+*.pfx
+*.key
+
+# ---- Node (generador del informe .docx) ----
+node_modules/
+
+# ---- SO ----
+Thumbs.db
+.DS_Store

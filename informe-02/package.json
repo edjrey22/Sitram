@@ -1,0 +1,12 @@
+{
+  "name": "sitram-informe",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Informe formal SITRAM — compilación de Markdown a .docx",
+  "scripts": {
+    "build": "node build-docx.js"
+  },
+  "dependencies": {
+    "docx": "^9.7.1"
+  }
+}

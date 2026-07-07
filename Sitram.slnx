@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Sitram.Api/Sitram.Api.csproj" />
+    <Project Path="src/Sitram.Application/Sitram.Application.csproj" />
+    <Project Path="src/Sitram.Domain/Sitram.Domain.csproj" />
+    <Project Path="src/Sitram.Infrastructure/Sitram.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Sitram.Application.Tests/Sitram.Application.Tests.csproj" />
+    <Project Path="tests/Sitram.Domain.Tests/Sitram.Domain.Tests.csproj" />
+    <Project Path="tests/Sitram.Integration.Tests/Sitram.Integration.Tests.csproj" />
+  </Folder>
+</Solution>

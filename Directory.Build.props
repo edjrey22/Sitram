@@ -1,0 +1,22 @@
+<Project>
+  <!-- Configuración compartida por todos los proyectos (convenciones.md §4, §9) -->
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <!-- El build falla ante advertencias en Release (RNF-051) -->
+    <TreatWarningsAsErrors Condition="'$(Configuration)' == 'Release'">true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <!-- Auditoría de seguridad de dependencias (OWASP A06). Se aceptan y rastrean explícitamente
+       los avisos que aún no tienen corrección compatible con .NET 10. -->
+  <ItemGroup>
+    <!--
+      GHSA-v5pm-xwqc-g5wc (Microsoft.OpenApi): afecta a toda la línea 2.x. La corrección está en
+      la 3.x, pero Microsoft.AspNetCore.OpenApi (10.0.x) depende de la 2.x, por lo que todavía no
+      existe una versión corregida compatible. Se fija el último parche 2.x (2.4.2) y se revisará
+      cuando el framework referencie una versión sana. Registrado en docs/errores-conocidos.md § 3.5.
+    -->
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-v5pm-xwqc-g5wc" />
+  </ItemGroup>
+</Project>
