@@ -37,10 +37,20 @@ public interface IIdentityService
     /// <summary>Valida el token y establece la nueva contraseña (RF-004).</summary>
     Task<bool> RestablecerContrasenaAsync(
         Guid usuarioId, string token, string nuevaContrasena, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Designa a un usuario como el único Oficial de Datos Personales (RF-066): le asigna el rol
+    /// "OficialDatosPersonales" y retira ese rol a quien lo tuviera antes, para que el cargo sea
+    /// singular en todo momento.
+    /// </summary>
+    Task DesignarOficialDatosAsync(Guid usuarioId, CancellationToken cancellationToken = default);
+
+    /// <summary>Usuario actualmente designado como Oficial de Datos Personales, si existe (RF-065, RF-066).</summary>
+    Task<UsuarioBasico?> ObtenerOficialDatosActivoAsync(CancellationToken cancellationToken = default);
 }
 
 public sealed record CrearUsuarioResultado(bool Succeeded, Guid UsuarioId, IReadOnlyList<string> Errores);
 
 public sealed record ValidarCredencialesResultado(bool Succeeded, bool BloqueadoTemporalmente, Guid UsuarioId);
 
-public sealed record UsuarioBasico(Guid Id, string UserName);
+public sealed record UsuarioBasico(Guid Id, string UserName, string? Email = null);

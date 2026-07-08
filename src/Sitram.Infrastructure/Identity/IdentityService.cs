@@ -12,6 +12,7 @@ public sealed class IdentityService(
     SitramDbContext context) : IIdentityService
 {
     private const string RolPorDefecto = "Ciudadano";
+    private const string RolOficialDatos = "OficialDatosPersonales";
 
     public async Task<CrearUsuarioResultado> CrearUsuarioAsync(
         string userName, string email, string password, CancellationToken cancellationToken = default)
@@ -60,7 +61,7 @@ public sealed class IdentityService(
     public async Task<UsuarioBasico?> ObtenerUsuarioAsync(Guid usuarioId, CancellationToken cancellationToken = default)
     {
         var usuario = await userManager.FindByIdAsync(usuarioId.ToString());
-        return usuario is null ? null : new UsuarioBasico(usuario.Id, usuario.UserName!);
+        return usuario is null ? null : new UsuarioBasico(usuario.Id, usuario.UserName!, usuario.Email);
     }
 
     public async Task<string> GenerarTokenConfirmacionEmailAsync(Guid usuarioId, CancellationToken cancellationToken = default)
@@ -82,7 +83,7 @@ public sealed class IdentityService(
     public async Task<UsuarioBasico?> ObtenerUsuarioPorEmailAsync(string email, CancellationToken cancellationToken = default)
     {
         var usuario = await userManager.FindByEmailAsync(email);
-        return usuario is null ? null : new UsuarioBasico(usuario.Id, usuario.UserName!);
+        return usuario is null ? null : new UsuarioBasico(usuario.Id, usuario.UserName!, usuario.Email);
     }
 
     public async Task<string> GenerarTokenRecuperacionContrasenaAsync(Guid usuarioId, CancellationToken cancellationToken = default)
@@ -100,5 +101,34 @@ public sealed class IdentityService(
 
         var resultado = await userManager.ResetPasswordAsync(usuario, token, nuevaContrasena);
         return resultado.Succeeded;
+    }
+
+    public async Task DesignarOficialDatosAsync(Guid usuarioId, CancellationToken cancellationToken = default)
+    {
+        var usuario = await userManager.FindByIdAsync(usuarioId.ToString())
+            ?? throw new InvalidOperationException($"No existe el usuario {usuarioId}.");
+
+        var rol = await context.Roles.FirstOrDefaultAsync(r => r.Nombre == RolOficialDatos, cancellationToken)
+            ?? throw new InvalidOperationException($"El rol {RolOficialDatos} no está sembrado.");
+
+        // El cargo es singular: se retira el rol a quien lo tuviera antes de asignarlo al nuevo oficial.
+        var asignacionesPrevias = context.UsuarioRoles.Where(ur => ur.RolId == rol.RolId);
+        context.UsuarioRoles.RemoveRange(asignacionesPrevias);
+        context.UsuarioRoles.Add(new UsuarioRol { UsuarioId = usuario.Id, RolId = rol.RolId });
+
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<UsuarioBasico?> ObtenerOficialDatosActivoAsync(CancellationToken cancellationToken = default)
+    {
+        var rol = await context.Roles.FirstOrDefaultAsync(r => r.Nombre == RolOficialDatos, cancellationToken);
+        if (rol is null) return null;
+
+        var usuarioId = await context.UsuarioRoles
+            .Where(ur => ur.RolId == rol.RolId)
+            .Select(ur => (Guid?)ur.UsuarioId)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return usuarioId is null ? null : await ObtenerUsuarioAsync(usuarioId.Value, cancellationToken);
     }
 }

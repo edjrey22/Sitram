@@ -66,7 +66,8 @@ builder.Services.AddAuthorizationBuilder()
     .AddPolicy("AdministracionGestionar", p => p.RequireClaim("permiso", "administracion:gestionar"))
     .AddPolicy("TramitePagar", p => p.RequireClaim("permiso", "tramite:pagar"))
     .AddPolicy("TramiteAdjuntar", p => p.RequireClaim("permiso", "tramite:adjuntar"))
-    .AddPolicy("ReportesLeer", p => p.RequireClaim("permiso", "reportes:leer"));
+    .AddPolicy("ReportesLeer", p => p.RequireClaim("permiso", "reportes:leer"))
+    .AddPolicy("DatosArco", p => p.RequireClaim("permiso", "datos:arco"));
 
 var app = builder.Build();
 

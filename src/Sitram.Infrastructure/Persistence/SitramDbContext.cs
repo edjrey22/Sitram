@@ -7,6 +7,7 @@ using Sitram.Application.Common.Interfaces;
 using Sitram.Domain.Ciudadanos;
 using Sitram.Domain.Common;
 using Sitram.Domain.Pagos;
+using Sitram.Domain.Seguridad;
 using Sitram.Domain.TiposTramite;
 using Sitram.Domain.Tramites;
 using Sitram.Infrastructure.Identity;
@@ -35,6 +36,7 @@ public class SitramDbContext(DbContextOptions<SitramDbContext> options, IPublish
     public DbSet<UsuarioRol> UsuarioRoles => Set<UsuarioRol>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<EventoAuditoria> EventosAuditoria => Set<EventoAuditoria>();
+    public DbSet<IncidenteSeguridad> IncidentesSeguridad => Set<IncidenteSeguridad>();
 
     /// <summary>
     /// Guarda los cambios y, si tienen éxito, despacha los eventos de dominio acumulados en los

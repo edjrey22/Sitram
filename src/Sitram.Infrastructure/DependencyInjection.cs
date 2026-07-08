@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Sitram.Application.Common.Interfaces;
 using Sitram.Domain.Ciudadanos;
 using Sitram.Domain.Pagos;
+using Sitram.Domain.Seguridad;
 using Sitram.Domain.TiposTramite;
 using Sitram.Domain.Tramites;
 using Sitram.Infrastructure.Almacenamiento;
@@ -34,6 +35,7 @@ public static class DependencyInjection
         services.AddScoped<ICiudadanoRepository, CiudadanoRepository>();
         services.AddScoped<IPagoRepository, PagoRepository>();
         services.AddScoped<IPagoService, PagoService>();
+        services.AddScoped<IIncidenteSeguridadRepository, IncidenteSeguridadRepository>();
         services.AddSingleton<IAlmacenamientoArchivos, AlmacenamientoArchivosLocal>();
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<SitramDbContext>());
 
