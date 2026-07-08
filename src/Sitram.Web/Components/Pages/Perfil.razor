@@ -1,0 +1,39 @@
+@page "/perfil"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using Sitram.Application.Ciudadanos.Queries.ObtenerPerfilCiudadano
+@inject ISender Sender
+@inject ICurrentUserService CurrentUser
+
+<PageTitle>Mi perfil — SITRAM</PageTitle>
+
+<h1>Mi perfil</h1>
+
+@if (_perfil is null)
+{
+    <p>Cargando…</p>
+}
+else
+{
+    <div class="card">
+        <div class="card-row" style="margin-bottom:0.6rem">
+            <p class="card-title" style="font-size:0.95rem">@_perfil.Nombres @_perfil.Apellidos</p>
+        </div>
+        <div style="font-size:0.82rem;color:var(--ink-soft);display:flex;flex-direction:column;gap:0.35rem">
+            <div><strong>DNI:</strong> @_perfil.Dni</div>
+            <div><strong>Correo:</strong> @_perfil.Correo</div>
+            <div><strong>Teléfono:</strong> @_perfil.Telefono</div>
+            <div><strong>Dirección:</strong> @_perfil.Direccion</div>
+        </div>
+    </div>
+
+    <div class="section-title">Tus derechos ARCO (Ley 29733)</div>
+    <div class="card"><p class="card-sub" style="margin:0">Acceso, Rectificación, Cancelación y Oposición sobre tus datos personales. Próximamente disponibles desde esta pantalla.</p></div>
+}
+
+@code {
+    private CiudadanoPerfilDto? _perfil;
+
+    protected override async Task OnInitializedAsync() =>
+        _perfil = await Sender.Send(new ObtenerPerfilCiudadanoQuery(CurrentUser.UsuarioId!.Value));
+}

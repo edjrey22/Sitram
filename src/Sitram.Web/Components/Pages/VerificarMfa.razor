@@ -1,0 +1,53 @@
+@page "/verificar-mfa"
+@layout Layout.MainLayout
+
+<PageTitle>Verificación en dos pasos — SITRAM</PageTitle>
+
+<div class="auth-page">
+    <div class="auth-card">
+        <div style="text-align:center;margin-bottom:1.8rem">
+            <div style="width:58px;height:58px;border-radius:17px;background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 0.9rem;box-shadow:0 6px 18px rgba(197,138,20,0.35)">
+                <Icon Name="lock" Size="27" />
+            </div>
+            <div style="font-weight:800;font-size:1.14rem;letter-spacing:-0.015em">Verifica tu identidad</div>
+            <div style="font-size:0.76rem;color:var(--ink-faint);margin-top:0.28rem">
+                Te enviamos un código de 6 dígitos por correo (RF-005)
+            </div>
+        </div>
+
+        @if (ErrorFlag)
+        {
+            <div class="alert alert-danger">
+                <Icon Name="alert" Size="16" />
+                <span>Código incorrecto o vencido. Intenta de nuevo.</span>
+            </div>
+        }
+
+        <form method="post" action="@($"/auth/verificar-mfa?usuarioId={UsuarioId}")">
+            <label class="field-label" for="codigo">Código de verificación</label>
+            <div class="field-wrap">
+                <Icon Name="shield" Size="15" />
+                <input class="field" id="codigo" name="codigo" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required />
+            </div>
+
+            <button class="btn btn-primary" type="submit">
+                Verificar <Icon Name="chev" Size="15" />
+            </button>
+        </form>
+
+        <div class="trust-row">
+            <Icon Name="lock" Size="12" />
+            Cuenta de funcionario — segundo factor obligatorio
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public Guid UsuarioId { get; set; }
+
+    [SupplyParameterFromQuery(Name = "error")]
+    public string? ErrorParam { get; set; }
+
+    private bool ErrorFlag => !string.IsNullOrWhiteSpace(ErrorParam);
+}

@@ -1,0 +1,58 @@
+@page "/login"
+@layout Layout.MainLayout
+
+<PageTitle>Iniciar sesión — SITRAM</PageTitle>
+
+<div class="auth-page">
+    <div class="auth-card">
+        <div style="text-align:center;margin-bottom:1.8rem">
+            <div style="width:58px;height:58px;border-radius:17px;background:var(--brand);color:var(--on-brand);display:flex;align-items:center;justify-content:center;margin:0 auto 0.9rem;box-shadow:0 6px 18px rgba(11,92,74,0.35)">
+                <Icon Name="shield" Size="27" />
+            </div>
+            <div style="font-weight:800;font-size:1.14rem;letter-spacing:-0.015em">Bienvenido a SITRAM</div>
+            <div style="font-size:0.76rem;color:var(--ink-faint);margin-top:0.28rem">Municipalidad Provincial · Trámites en línea</div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Error))
+        {
+            <div class="alert alert-danger">
+                <Icon Name="alert" Size="16" />
+                <span>@Error</span>
+            </div>
+        }
+
+        <form method="post" action="/auth/login">
+            <label class="field-label" for="userName">Usuario o DNI</label>
+            <div class="field-wrap">
+                <Icon Name="user" Size="15" />
+                <input class="field" id="userName" name="userName" autocomplete="username" required />
+            </div>
+
+            <label class="field-label" for="password">Contraseña</label>
+            <div class="field-wrap">
+                <Icon Name="lock" Size="15" />
+                <input class="field" id="password" name="password" type="password" autocomplete="current-password" required />
+            </div>
+
+            <button class="btn btn-primary" type="submit" style="margin-bottom:0.7rem">
+                Iniciar sesión <Icon Name="chev" Size="15" />
+            </button>
+        </form>
+
+        <div class="link-row">¿Olvidaste tu contraseña?</div>
+
+        <div class="card" style="text-align:center;font-size:0.78rem;color:var(--ink-soft);margin-top:0.55rem">
+            ¿Primera vez? <a href="/registro" style="color:var(--brand-deep);font-weight:700">Crea tu cuenta</a>
+        </div>
+
+        <div class="trust-row">
+            <Icon Name="lock" Size="12" />
+            Conexión segura · Ley 29733 de protección de datos
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public string? Error { get; set; }
+}

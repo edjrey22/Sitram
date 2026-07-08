@@ -8,4 +8,4 @@ public sealed record ListarTramitesCiudadanoQuery(Guid CiudadanoId, int Page = 1
     : IRequest<PagedResult<TramiteResumenDto>>;
 
 /// <summary>Vista resumida de un trámite para el listado (sin historial completo).</summary>
-public sealed record TramiteResumenDto(Guid Id, string Codigo, string Estado, DateTime CreadoUtc);
+public sealed record TramiteResumenDto(Guid Id, string Codigo, string Estado, string TipoTramiteNombre, DateTime CreadoUtc);

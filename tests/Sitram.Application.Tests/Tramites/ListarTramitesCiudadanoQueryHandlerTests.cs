@@ -14,7 +14,7 @@ public class ListarTramitesCiudadanoQueryHandlerTests
         // Arrange
         var ciudadanoId = Guid.NewGuid();
         var esperado = new PagedResult<TramiteResumenDto>(
-            [new TramiteResumenDto(Guid.NewGuid(), "TRA-2026-0001", "Borrador", DateTime.UtcNow)],
+            [new TramiteResumenDto(Guid.NewGuid(), "TRA-2026-0001", "Borrador", "Licencia de funcionamiento", DateTime.UtcNow)],
             TotalCount: 1, Page: 1, PageSize: 20);
 
         var readService = new Mock<ITramitesReadService>();

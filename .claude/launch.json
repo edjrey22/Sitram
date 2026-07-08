@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "sitram-api",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "src/Sitram.Api", "--launch-profile", "http"],
+      "port": 5299
+    },
+    {
+      "name": "sitram-web",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "src/Sitram.Web", "--launch-profile", "http"],
+      "port": 5049
+    },
+    {
+      "name": "mockup-preview",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["--yes", "serve", "C:/Users/edjor/AppData/Local/Temp/claude/C--proyecto-software/75ef2023-f314-4848-b546-d6bb4388615c/scratchpad", "-l", "4173"],
+      "port": 4173
+    }
+  ]
+}

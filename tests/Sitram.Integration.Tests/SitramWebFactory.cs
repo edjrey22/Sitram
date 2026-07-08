@@ -6,21 +6,25 @@ using Microsoft.Extensions.DependencyInjection;
 using Sitram.Application.Common.Interfaces;
 using Sitram.Domain.TiposTramite;
 using Sitram.Infrastructure.Persistence;
+using System.Linq;
 
 namespace Sitram.Integration.Tests;
 
 /// <summary>
+
 /// Arranca la API en memoria apuntando a una base de datos de prueba en LocalDB
 /// (SitramDb_Test), con el esquema recreado desde las migraciones.
 /// </summary>
 public sealed class SitramWebFactory : WebApplicationFactory<Program>
 {
-    private const string TestConnection =
-        @"Server=(localdb)\MSSQLLocalDB;Database=SitramDb_Test;Trusted_Connection=True;TrustServerCertificate=True";
+    // Use a unique database per test run by appending a guid, this is important to avoid clashes
+    private readonly string _testConnection = 
+        $@"Server=(localdb)\TestDB;Database=SitramDb_Test_{Guid.NewGuid()};Trusted_Connection=True;TrustServerCertificate=True";
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
+
 
         // Clave JWT exclusiva de la ejecución de pruebas (no es un secreto de producción;
         // el entorno "Testing" no carga User Secrets, así que se provee aquí explícitamente).
@@ -45,7 +49,9 @@ public sealed class SitramWebFactory : WebApplicationFactory<Program>
                 d => d.ServiceType == typeof(DbContextOptions<SitramDbContext>));
             if (descriptor is not null) services.Remove(descriptor);
 
-            services.AddDbContext<SitramDbContext>(o => o.UseSqlServer(TestConnection));
+            services.AddDbContext<SitramDbContext>(o => o.UseSqlServer(_testConnection));
+
+
 
             // Reemplazar el envío real de correo por un doble de prueba (sin SMTP real).
             var emailDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IEmailService));

@@ -117,6 +117,9 @@ public sealed class IdentityService(
         context.UsuarioRoles.Add(new UsuarioRol { UsuarioId = usuario.Id, RolId = rol.RolId });
 
         await context.SaveChangesAsync(cancellationToken);
+
+        // RF-005: toda cuenta de funcionario exige segundo factor; el Oficial de Datos lo es.
+        await HabilitarMfaAsync(usuario.Id, cancellationToken);
     }
 
     public async Task<UsuarioBasico?> ObtenerOficialDatosActivoAsync(CancellationToken cancellationToken = default)
@@ -130,5 +133,35 @@ public sealed class IdentityService(
             .FirstOrDefaultAsync(cancellationToken);
 
         return usuarioId is null ? null : await ObtenerUsuarioAsync(usuarioId.Value, cancellationToken);
+    }
+
+    public async Task HabilitarMfaAsync(Guid usuarioId, CancellationToken cancellationToken = default)
+    {
+        var usuario = await userManager.FindByIdAsync(usuarioId.ToString())
+            ?? throw new InvalidOperationException($"No existe el usuario {usuarioId}.");
+
+        await userManager.SetTwoFactorEnabledAsync(usuario, true);
+    }
+
+    public async Task<bool> RequiereMfaAsync(Guid usuarioId, CancellationToken cancellationToken = default)
+    {
+        var usuario = await userManager.FindByIdAsync(usuarioId.ToString());
+        return usuario is not null && await userManager.GetTwoFactorEnabledAsync(usuario);
+    }
+
+    public async Task<string> GenerarCodigoMfaAsync(Guid usuarioId, CancellationToken cancellationToken = default)
+    {
+        var usuario = await userManager.FindByIdAsync(usuarioId.ToString())
+            ?? throw new InvalidOperationException($"No existe el usuario {usuarioId}.");
+
+        return await userManager.GenerateTwoFactorTokenAsync(usuario, TokenOptions.DefaultEmailProvider);
+    }
+
+    public async Task<bool> VerificarCodigoMfaAsync(Guid usuarioId, string codigo, CancellationToken cancellationToken = default)
+    {
+        var usuario = await userManager.FindByIdAsync(usuarioId.ToString());
+        if (usuario is null) return false;
+
+        return await userManager.VerifyTwoFactorTokenAsync(usuario, TokenOptions.DefaultEmailProvider, codigo);
     }
 }

@@ -7,6 +7,7 @@ using Sitram.Application.Auth.Commands.RefrescarToken;
 using Sitram.Application.Auth.Commands.Registrar;
 using Sitram.Application.Auth.Commands.RestablecerContrasena;
 using Sitram.Application.Auth.Commands.SolicitarRecuperacionContrasena;
+using Sitram.Application.Auth.Commands.VerificarMfa;
 
 namespace Sitram.Api.Controllers;
 
@@ -24,11 +25,23 @@ public sealed class AuthController(ISender sender) : ControllerBase
         return Created(string.Empty, new { id });
     }
 
-    /// <summary>Inicia sesión y emite un JWT + refresh token (RF-002, RF-003).</summary>
+    /// <summary>
+    /// Inicia sesión (RF-002, RF-003). Si la cuenta exige segundo factor (RF-005), la respuesta
+    /// trae <c>requiereMfa: true</c> y ningún token: hay que completar <see cref="VerificarMfa"/>.
+    /// </summary>
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken ct)
     {
-        var tokens = await sender.Send(new IniciarSesionCommand(request.UserName, request.Password), ct);
+        var resultado = await sender.Send(new IniciarSesionCommand(request.UserName, request.Password), ct);
+        return Ok(resultado);
+    }
+
+    /// <summary>Completa el segundo paso del login con el código enviado por correo (RF-005).</summary>
+    [HttpPost("login/verificar-mfa")]
+    [AllowAnonymous]
+    public async Task<IActionResult> VerificarMfa([FromBody] VerificarMfaRequest request, CancellationToken ct)
+    {
+        var tokens = await sender.Send(new VerificarMfaCommand(request.UsuarioId, request.Codigo), ct);
         return Ok(tokens);
     }
 
@@ -79,3 +92,4 @@ public sealed record RefrescarRequest(string RefreshToken);
 public sealed record ConfirmarEmailRequest(Guid UsuarioId, string Token);
 public sealed record RecuperarContrasenaRequest(string Email);
 public sealed record RestablecerContrasenaRequest(Guid UsuarioId, string Token, string NuevaContrasena);
+public sealed record VerificarMfaRequest(Guid UsuarioId, string Codigo);

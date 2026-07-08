@@ -47,6 +47,18 @@ public interface IIdentityService
 
     /// <summary>Usuario actualmente designado como Oficial de Datos Personales, si existe (RF-065, RF-066).</summary>
     Task<UsuarioBasico?> ObtenerOficialDatosActivoAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Marca la cuenta como sujeta a segundo factor obligatorio (RF-005, cuentas de funcionario).</summary>
+    Task HabilitarMfaAsync(Guid usuarioId, CancellationToken cancellationToken = default);
+
+    /// <summary>Indica si la cuenta exige segundo factor en el inicio de sesión (RF-005).</summary>
+    Task<bool> RequiereMfaAsync(Guid usuarioId, CancellationToken cancellationToken = default);
+
+    /// <summary>Genera el código de verificación de un solo uso, enviado por correo (RF-005).</summary>
+    Task<string> GenerarCodigoMfaAsync(Guid usuarioId, CancellationToken cancellationToken = default);
+
+    /// <summary>Valida el código de verificación del segundo factor (RF-005).</summary>
+    Task<bool> VerificarCodigoMfaAsync(Guid usuarioId, string codigo, CancellationToken cancellationToken = default);
 }
 
 public sealed record CrearUsuarioResultado(bool Succeeded, Guid UsuarioId, IReadOnlyList<string> Errores);

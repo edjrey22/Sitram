@@ -1,0 +1,81 @@
+@page "/tramites/nuevo"
+@rendermode InteractiveServer
+@attribute [Authorize(Policy = "TramiteIniciar")]
+@using Sitram.Application.TiposTramite.Queries.ObtenerCatalogoTramites
+@using Sitram.Application.Tramites.Commands.IniciarTramite
+@inject ISender Sender
+@inject ICurrentUserService CurrentUser
+@inject NavigationManager Navigation
+
+<PageTitle>Nuevo trámite — SITRAM</PageTitle>
+
+<h1>Nuevo trámite</h1>
+
+@if (_error is not null)
+{
+    <div class="alert alert-danger"><Icon Name="alert" Size="16" /><span>@_error</span></div>
+}
+
+<div class="section-title">Elige el tipo de trámite</div>
+
+@if (_cargando)
+{
+    <p>Cargando catálogo…</p>
+}
+else if (_catalogo.Count == 0)
+{
+    <div class="card"><p class="card-sub">No hay tipos de trámite disponibles por ahora.</p></div>
+}
+else
+{
+    @foreach (var tipo in _catalogo)
+    {
+        <div class="card" style="cursor:pointer" @onclick="() => IniciarAsync(tipo)">
+            <div class="card-row">
+                <div class="card-main">
+                    <div class="card-icon"><Icon Name="@(tipo.Nombre.Contains("posesión", StringComparison.OrdinalIgnoreCase) ? "house" : tipo.Nombre.Contains("licencia", StringComparison.OrdinalIgnoreCase) ? "building" : "file")" Size="17" /></div>
+                    <div class="txt">
+                        <p class="card-title">@tipo.Nombre</p>
+                        <p class="card-sub">@tipo.AreaResponsable · @tipo.Descripcion</p>
+                    </div>
+                </div>
+                <span style="font-weight:800;font-size:0.9rem;color:var(--brand-deep);background:var(--brand-soft);padding:0.34rem 0.6rem;border-radius:var(--radius-sm);white-space:nowrap">
+                    @(tipo.Tasa == 0 ? "Gratuito" : $"S/ {tipo.Tasa:0.00}")
+                </span>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private bool _cargando = true;
+    private bool _creando;
+    private string? _error;
+    private List<TipoTramiteResumenDto> _catalogo = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _catalogo = (await Sender.Send(new ObtenerCatalogoTramitesQuery())).ToList();
+        _cargando = false;
+    }
+
+    private async Task IniciarAsync(TipoTramiteResumenDto tipo)
+    {
+        if (_creando) return;
+        _creando = true;
+        _error = null;
+
+        try
+        {
+            var ciudadanoId = CurrentUser.UsuarioId!.Value;
+            var codigo = $"TRA-{DateTime.UtcNow:yyyy}-{Random.Shared.Next(1000, 9999)}";
+            var id = await Sender.Send(new IniciarTramiteCommand(ciudadanoId, tipo.Id, codigo));
+            Navigation.NavigateTo($"/tramites/{id}");
+        }
+        catch (Exception ex)
+        {
+            _error = "No se pudo iniciar el trámite: " + ex.Message;
+            _creando = false;
+        }
+    }
+}

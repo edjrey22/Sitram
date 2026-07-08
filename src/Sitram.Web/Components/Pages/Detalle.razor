@@ -1,0 +1,200 @@
+@page "/tramites/{Id:guid}"
+@rendermode InteractiveServer
+@attribute [Authorize(Policy = "TramiteConsultar")]
+@using Sitram.Application.Pagos.Commands.ConfirmarPago
+@using Sitram.Application.Pagos.Commands.RegistrarPago
+@using Sitram.Application.Pagos.Queries.ObtenerPago
+@using Sitram.Application.Pagos.Queries.ObtenerPagoPorTramite
+@using Sitram.Application.Tramites.Commands.AdjuntarDocumento
+@using Sitram.Application.Tramites.Commands.Transiciones
+@using Sitram.Application.Tramites.Queries.ListarDocumentosTramite
+@using Sitram.Application.Tramites.Queries.ObtenerEstadoTramite
+@inject ISender Sender
+@inject NavigationManager Navigation
+
+<PageTitle>@(_tramite?.Codigo ?? "Trámite") — SITRAM</PageTitle>
+
+@if (_cargando)
+{
+    <p>Cargando…</p>
+}
+else if (_tramite is null)
+{
+    <div class="card"><p>No se encontró el trámite.</p></div>
+}
+else
+{
+    @if (_error is not null)
+    {
+        <div class="alert alert-danger"><Icon Name="alert" Size="16" /><span>@_error</span></div>
+    }
+
+    <div class="card" style="margin-bottom:1rem">
+        <div class="card-row" style="margin-bottom:0.15rem">
+            <p class="card-title" style="font-size:0.96rem">@_tramite.Codigo</p>
+            <span class="pill @PillClass(_tramite.Estado)">@EstadoLegible(_tramite.Estado)</span>
+        </div>
+        <p class="card-sub">Iniciado @_tramite.CreadoUtc.ToLocalTime().ToString("dd MMM yyyy")</p>
+    </div>
+
+    <div class="section-title">Acciones</div>
+    <div style="display:flex;flex-direction:column;gap:0.6rem;margin-bottom:0.4rem">
+        @if (_tramite.Estado == "Borrador")
+        {
+            <AuthorizeView Policy="TramiteEnviar" Context="auth">
+                <Authorized><button class="btn btn-primary" disabled="@_procesando" @onclick="EnviarAsync">Enviar trámite</button></Authorized>
+            </AuthorizeView>
+        }
+
+        @if (_tramite.Estado == "Observado")
+        {
+            <AuthorizeView Policy="TramiteSubsanar" Context="auth">
+                <Authorized><button class="btn btn-primary" disabled="@_procesando" @onclick="SubsanarAsync">Ya subsané — reenviar a revisión</button></Authorized>
+            </AuthorizeView>
+        }
+
+        @if (_pago is null && _tramite.Estado == "Recibido")
+        {
+            <AuthorizeView Policy="TramitePagar" Context="auth">
+                <Authorized><button class="btn btn-primary" disabled="@_procesando" @onclick="RegistrarPagoAsync">Registrar pago de la tasa</button></Authorized>
+            </AuthorizeView>
+        }
+    </div>
+
+    @if (_pago is not null)
+    {
+        <div class="section-title">Pago de la tasa</div>
+        <div class="card card-row">
+            <div class="card-main">
+                <div class="card-icon gold"><Icon Name="card" Size="17" /></div>
+                <div class="txt">
+                    <p class="card-title">S/ @_pago.Monto.ToString("0.00")</p>
+                    <p class="card-sub">@(_pago.Estado == "Pendiente" ? "Pendiente de pago" : _pago.Estado)</p>
+                </div>
+            </div>
+            @if (_pago.Estado == "Pendiente")
+            {
+                <AuthorizeView Policy="TramitePagar" Context="auth">
+                    <Authorized><button class="btn btn-primary btn-sm" disabled="@_procesando" @onclick="ConfirmarPagoAsync">Pagar (modo prueba)</button></Authorized>
+                </AuthorizeView>
+            }
+        </div>
+    }
+
+    <div class="section-title">Seguimiento</div>
+    <div class="card">
+        <div style="font-size:0.82rem;font-weight:700;margin-bottom:0.2rem">Trámite creado</div>
+        <div style="font-size:0.68rem;color:var(--ink-faint);margin-bottom:0.7rem">@_tramite.CreadoUtc.ToLocalTime().ToString("dd MMM, HH:mm")</div>
+        @foreach (var a in _tramite.Historial)
+        {
+            <div style="border-top:1px solid var(--line);padding-top:0.6rem;margin-top:0.6rem">
+                <div style="font-size:0.82rem;font-weight:700">@EstadoLegible(a.EstadoAnterior) → @EstadoLegible(a.EstadoNuevo)</div>
+                @if (!string.IsNullOrWhiteSpace(a.Comentario))
+                {
+                    <div style="font-size:0.76rem;color:var(--ink-soft);margin-top:0.15rem">@a.Comentario</div>
+                }
+                <div style="font-size:0.68rem;color:var(--ink-faint);margin-top:0.15rem">@a.FechaUtc.ToLocalTime().ToString("dd MMM, HH:mm")</div>
+            </div>
+        }
+    </div>
+
+    <div class="section-title">Documentos adjuntos</div>
+    <div class="card">
+        @if (_documentos.Count == 0)
+        {
+            <p class="card-sub" style="margin:0">Aún no hay documentos adjuntos.</p>
+        }
+        else
+        {
+            @foreach (var d in _documentos)
+            {
+                <div style="display:flex;align-items:center;gap:0.6rem;padding:0.5rem 0;border-bottom:1px solid var(--line);font-size:0.78rem">
+                    <Icon Name="file" Size="16" />
+                    <span style="flex:1">@d.NombreArchivo</span>
+                    <span style="color:var(--ink-faint);font-size:0.66rem">@d.SubidoUtc.ToLocalTime().ToString("dd MMM")</span>
+                </div>
+            }
+        }
+    </div>
+
+    <AuthorizeView Policy="TramiteAdjuntar" Context="auth">
+        <Authorized>
+            <div class="card">
+                <label class="field-label" for="archivo">Adjuntar documento</label>
+                <InputFile OnChange="AdjuntarAsync" id="archivo" />
+            </div>
+        </Authorized>
+    </AuthorizeView>
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private bool _cargando = true;
+    private bool _procesando;
+    private string? _error;
+    private TramiteEstadoDto? _tramite;
+    private PagoDto? _pago;
+    private List<DocumentoDto> _documentos = new();
+
+    protected override async Task OnInitializedAsync() => await CargarAsync();
+
+    private async Task CargarAsync()
+    {
+        _tramite = await Sender.Send(new ObtenerEstadoTramiteQuery(Id));
+        if (_tramite is not null)
+        {
+            _pago = await Sender.Send(new ObtenerPagoPorTramiteQuery(Id));
+            _documentos = (await Sender.Send(new ListarDocumentosTramiteQuery(Id)) ?? []).ToList();
+        }
+        _cargando = false;
+    }
+
+    private async Task EjecutarAsync(Func<Task> accion)
+    {
+        _procesando = true;
+        _error = null;
+        try
+        {
+            await accion();
+            await CargarAsync();
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _procesando = false;
+        }
+    }
+
+    private Task EnviarAsync() => EjecutarAsync(() => Sender.Send(new EnviarTramiteCommand(Id)));
+    private Task SubsanarAsync() => EjecutarAsync(() => Sender.Send(new SubsanarTramiteCommand(Id)));
+    private Task RegistrarPagoAsync() => EjecutarAsync(() => Sender.Send(new RegistrarPagoCommand(Id)));
+    private Task ConfirmarPagoAsync() => EjecutarAsync(() => Sender.Send(new ConfirmarPagoCommand(_pago!.Id)));
+
+    private async Task AdjuntarAsync(InputFileChangeEventArgs e)
+    {
+        await EjecutarAsync(async () =>
+        {
+            await using var stream = e.File.OpenReadStream(maxAllowedSize: 10_000_000);
+            await Sender.Send(new AdjuntarDocumentoCommand(Id, e.File.Name, stream));
+        });
+    }
+
+    private static string PillClass(string estado) => estado switch
+    {
+        "Borrador" => "borrador",
+        "Recibido" or "EnRevision" => "revision",
+        "Aprobado" => "aprobado",
+        "Observado" or "Rechazado" => "observado",
+        _ => "borrador",
+    };
+
+    private static string EstadoLegible(string estado) => estado switch
+    {
+        "EnRevision" => "En revisión",
+        _ => estado,
+    };
+}

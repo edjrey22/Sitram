@@ -25,7 +25,8 @@ public sealed class TramitesReadService(SitramDbContext context) : ITramitesRead
             .OrderByDescending(t => t.CreadoUtc)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(t => new TramiteResumenDto(t.Id.Value, t.Codigo, t.Estado.ToString(), t.CreadoUtc))
+            .Join(context.TiposTramite, t => t.TipoTramiteId, tt => tt.Id, (t, tt) =>
+                new TramiteResumenDto(t.Id.Value, t.Codigo, t.Estado.ToString(), tt.Nombre, t.CreadoUtc))
             .ToListAsync(cancellationToken);
 
         return new PagedResult<TramiteResumenDto>(items, total, page, pageSize);

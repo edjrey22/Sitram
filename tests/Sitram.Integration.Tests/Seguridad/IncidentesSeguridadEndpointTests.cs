@@ -102,6 +102,7 @@ public class IncidentesSeguridadEndpointTests(SitramWebFactory factory)
     /// <summary>
     /// El JWT emitido al registrar al usuario no lleva el permiso "datos:arco" porque ese rol se
     /// asignó después: se vuelve a autenticar para obtener un token con los permisos vigentes.
+    /// Designar al Oficial de Datos habilita MFA (RF-005), así que el login exige un segundo paso.
     /// </summary>
     private async Task<(HttpClient Client, Guid Id)> ReautenticarComoOficialAsync(Guid oficialId)
     {
@@ -112,12 +113,32 @@ public class IncidentesSeguridadEndpointTests(SitramWebFactory factory)
         var client = factory.CreateClient();
         var login = await client.PostAsJsonAsync("/api/auth/login", new { userName, password = "Clave#Segura123" });
         login.EnsureSuccessStatusCode();
-        var tokens = (await login.Content.ReadFromJsonAsync<AuthTestHelper.TokenResponseTest>())!;
-        client.DefaultRequestHeaders.Authorization =
-            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tokens.AccessToken);
+        var primerPaso = (await login.Content.ReadFromJsonAsync<LoginResponseDto>())!;
 
+        string accessToken;
+        if (primerPaso.RequiereMfa)
+        {
+            var correoOficial = (await db.Users.SingleAsync(u => u.Id == oficialId)).Email;
+            var fakeEmail = factory.Services.GetRequiredService<FakeEmailService>();
+            var correo = fakeEmail.Enviados.Last(e => e.Destino == correoOficial);
+            var codigo = System.Text.RegularExpressions.Regex.Match(correo.Cuerpo, @"\d{6}").Value;
+
+            var verificacion = await client.PostAsJsonAsync(
+                "/api/auth/login/verificar-mfa", new { usuarioId = primerPaso.UsuarioId, codigo });
+            verificacion.EnsureSuccessStatusCode();
+            var tokens = (await verificacion.Content.ReadFromJsonAsync<AuthTestHelper.TokenResponseTest>())!;
+            accessToken = tokens.AccessToken;
+        }
+        else
+        {
+            accessToken = primerPaso.AccessToken!;
+        }
+
+        client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
         return (client, oficialId);
     }
+
+    private sealed record LoginResponseDto(bool RequiereMfa, Guid? UsuarioId, string? AccessToken, DateTime? ExpiraUtc, string? RefreshToken);
 
     private sealed record IncidenteCreadoResponse(Guid IncidenteId, string Estado, bool OficialNotificado);
 

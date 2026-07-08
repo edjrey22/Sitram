@@ -4,6 +4,7 @@
     <Project Path="src/Sitram.Application/Sitram.Application.csproj" />
     <Project Path="src/Sitram.Domain/Sitram.Domain.csproj" />
     <Project Path="src/Sitram.Infrastructure/Sitram.Infrastructure.csproj" />
+    <Project Path="src/Sitram.Web/Sitram.Web.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Sitram.Application.Tests/Sitram.Application.Tests.csproj" />

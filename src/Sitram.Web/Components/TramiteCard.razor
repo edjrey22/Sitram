@@ -1,0 +1,48 @@
+@using Sitram.Application.Tramites.Queries.ListarTramitesCiudadano
+
+<a class="card-link" href="@($"/tramites/{Tramite.Id}")">
+    <div class="card @(Alerta ? "alert-left" : "")">
+        <div class="card-row">
+            <div class="card-main">
+                <div class="card-icon @IconClass"><Icon Name="@IconName" Size="17" /></div>
+                <div class="txt">
+                    <p class="card-title">@Tramite.Codigo</p>
+                    <p class="card-sub">@Tramite.TipoTramiteNombre</p>
+                </div>
+            </div>
+            <span class="pill @PillClass">@EstadoLegible</span>
+        </div>
+    </div>
+</a>
+
+@code {
+    [Parameter, EditorRequired] public TramiteResumenDto Tramite { get; set; } = default!;
+    [Parameter] public bool Alerta { get; set; }
+
+    private string IconName => Tramite.TipoTramiteNombre.Contains("posesión", StringComparison.OrdinalIgnoreCase) ? "house"
+        : Tramite.TipoTramiteNombre.Contains("licencia", StringComparison.OrdinalIgnoreCase) ? "building"
+        : "file";
+
+    private string IconClass => Tramite.Estado switch
+    {
+        "Observado" => "danger",
+        "Borrador" => "muted",
+        _ => "",
+    };
+
+    private string PillClass => Tramite.Estado switch
+    {
+        "Borrador" => "borrador",
+        "Recibido" or "EnRevision" => "revision",
+        "Aprobado" => "aprobado",
+        "Observado" or "Rechazado" => "observado",
+        _ => "borrador",
+    };
+
+    private string EstadoLegible => Tramite.Estado switch
+    {
+        "Recibido" => "Recibido",
+        "EnRevision" => "En revisión",
+        _ => Tramite.Estado,
+    };
+}
