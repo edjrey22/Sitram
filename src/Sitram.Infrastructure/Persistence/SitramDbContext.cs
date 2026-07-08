@@ -4,9 +4,14 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Sitram.Application.Common.Events;
 using Sitram.Application.Common.Interfaces;
+using Sitram.Domain.Ciudadanos;
 using Sitram.Domain.Common;
+using Sitram.Domain.Pagos;
+using Sitram.Domain.TiposTramite;
 using Sitram.Domain.Tramites;
 using Sitram.Infrastructure.Identity;
+using Sitram.Infrastructure.Persistence.Cifrado;
+using Sitram.Infrastructure.Persistence.Configurations;
 
 namespace Sitram.Infrastructure.Persistence;
 
@@ -17,10 +22,13 @@ namespace Sitram.Infrastructure.Persistence;
 /// Cada entidad se configura con su <c>IEntityTypeConfiguration&lt;T&gt;</c> en
 /// Persistence/Configurations.
 /// </summary>
-public class SitramDbContext(DbContextOptions<SitramDbContext> options, IPublisher publisher)
+public class SitramDbContext(DbContextOptions<SitramDbContext> options, IPublisher publisher, CifradoColumna cifrado)
     : IdentityUserContext<ApplicationUser, Guid>(options), IUnitOfWork
 {
     public DbSet<Tramite> Tramites => Set<Tramite>();
+    public DbSet<TipoTramite> TiposTramite => Set<TipoTramite>();
+    public DbSet<Ciudadano> Ciudadanos => Set<Ciudadano>();
+    public DbSet<Pago> Pagos => Set<Pago>();
     public DbSet<Rol> Roles => Set<Rol>();
     public DbSet<Permiso> Permisos => Set<Permiso>();
     public DbSet<RolPermiso> RolPermisos => Set<RolPermiso>();
@@ -59,6 +67,11 @@ public class SitramDbContext(DbContextOptions<SitramDbContext> options, IPublish
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+
+        // CiudadanoConfiguration se excluye del escaneo automático porque requiere CifradoColumna
+        // por constructor (cifra Dni/Correo/Telefono); se aplica manualmente a continuación.
+        modelBuilder.ApplyConfigurationsFromAssembly(
+            Assembly.GetExecutingAssembly(), t => t != typeof(CiudadanoConfiguration));
+        modelBuilder.ApplyConfiguration(new CiudadanoConfiguration(cifrado));
     }
 }

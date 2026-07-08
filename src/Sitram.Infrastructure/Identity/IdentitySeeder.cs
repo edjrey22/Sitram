@@ -18,6 +18,8 @@ public static class IdentitySeeder
         ("tramite:iniciar", ["Ciudadano"]),
         ("tramite:enviar", ["Ciudadano"]),
         ("tramite:subsanar", ["Ciudadano"]),
+        ("tramite:pagar", ["Ciudadano"]),
+        ("tramite:adjuntar", ["Ciudadano"]),
         ("tramite:consultar", ["Ciudadano", "MesaDePartes", "Revisor", "JefeDeArea", "Administrador", "Auditor"]),
         ("tramite:recepcionar", ["MesaDePartes"]),
         ("tramite:evaluar", ["Revisor"]),
@@ -26,6 +28,7 @@ public static class IdentitySeeder
         ("tramite:rechazar", ["JefeDeArea"]),
         ("administracion:gestionar", ["Administrador"]),
         ("auditoria:leer", ["Auditor"]),
+        ("reportes:leer", ["JefeDeArea", "Administrador"]),
         ("datos:arco", ["OficialDatosPersonales"]),
     ];
 

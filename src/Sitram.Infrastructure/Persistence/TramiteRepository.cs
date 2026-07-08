@@ -12,5 +12,6 @@ public sealed class TramiteRepository(SitramDbContext context) : ITramiteReposit
     public async Task<Tramite?> ObtenerPorIdAsync(TramiteId id, CancellationToken cancellationToken = default) =>
         await context.Tramites
             .Include(t => t.Historial)
+            .Include(t => t.Documentos)
             .FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
 }

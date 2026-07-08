@@ -16,15 +16,30 @@ public static class AuthTestHelper
     /// Registra un usuario nuevo, le asigna el rol indicado (si no es "Ciudadano", el rol por
     /// defecto) y devuelve un <see cref="HttpClient"/> con el JWT ya puesto en el encabezado.
     /// </summary>
-    public static async Task<HttpClient> CrearClienteAutenticadoAsync(this SitramWebFactory factory, string rol = "Ciudadano")
+    public static async Task<HttpClient> CrearClienteAutenticadoAsync(this SitramWebFactory factory, string rol = "Ciudadano") =>
+        (await factory.CrearClienteAutenticadoConIdAsync(rol)).Client;
+
+    /// <summary>
+    /// Igual que <see cref="CrearClienteAutenticadoAsync"/>, pero además devuelve el Id del
+    /// usuario/ciudadano registrado (comparten Guid, relación 1:1 de modelo-datos.md) — útil
+    /// cuando la prueba necesita crear un trámite a nombre de este ciudadano real.
+    /// </summary>
+    public static async Task<(HttpClient Client, Guid Id)> CrearClienteAutenticadoConIdAsync(
+        this SitramWebFactory factory, string rol = "Ciudadano")
     {
         var client = factory.CreateClient();
-        var sufijo = $"{Interlocked.Increment(ref _contador)}_{Guid.NewGuid():N}";
+        var numero = Interlocked.Increment(ref _contador);
+        var sufijo = $"{numero}_{Guid.NewGuid():N}";
         var userName = $"usuario{sufijo}";
         var email = $"{userName}@test.local";
+        var dni = (10_000_000 + numero).ToString(); // 8 dígitos únicos por usuario de prueba
         const string password = "Clave#Segura123";
 
-        var registro = await client.PostAsJsonAsync("/api/auth/registro", new { userName, email, password });
+        var registro = await client.PostAsJsonAsync("/api/auth/registro", new
+        {
+            userName, email, password,
+            nombres = "Nombre", apellidos = "Apellido", dni, telefono = "987654321", direccion = "Av. Test 123",
+        });
         registro.EnsureSuccessStatusCode();
         var registrado = (await registro.Content.ReadFromJsonAsync<IdResponse>())!;
 
@@ -44,7 +59,7 @@ public static class AuthTestHelper
         var tokens = (await login.Content.ReadFromJsonAsync<TokenResponseTest>())!;
 
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokens.AccessToken);
-        return client;
+        return (client, registrado.Id);
     }
 
     private sealed record IdResponse(Guid Id);

@@ -86,6 +86,195 @@ namespace Sitram.Infrastructure.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Sitram.Domain.Ciudadanos.Ciudadano", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Apellidos")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<byte[]>("Correo")
+                        .IsRequired()
+                        .HasColumnType("varbinary(256)");
+
+                    b.Property<DateTime>("CreadoUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Direccion")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<byte[]>("Dni")
+                        .IsRequired()
+                        .HasColumnType("varbinary(128)");
+
+                    b.Property<bool>("EstaAnonimizado")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Nombres")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<byte[]>("Telefono")
+                        .IsRequired()
+                        .HasColumnType("varbinary(128)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Dni")
+                        .IsUnique();
+
+                    b.ToTable("Ciudadanos", (string)null);
+                });
+
+            modelBuilder.Entity("Sitram.Domain.Ciudadanos.Consentimiento", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("CiudadanoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("FechaUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Finalidad")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<bool>("Otorgado")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("RevocadoUtc")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CiudadanoId");
+
+                    b.ToTable("Consentimientos", (string)null);
+                });
+
+            modelBuilder.Entity("Sitram.Domain.Pagos.Pago", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime>("FechaUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("Monto")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<string>("ReferenciaPasarela")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<Guid>("TramiteId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TramiteId");
+
+                    b.ToTable("Pagos", (string)null);
+                });
+
+            modelBuilder.Entity("Sitram.Domain.TiposTramite.PasoFlujo", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Orden")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RolResponsableId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TipoTramiteId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TipoTramiteId");
+
+                    b.ToTable("PasosFlujo", (string)null);
+                });
+
+            modelBuilder.Entity("Sitram.Domain.TiposTramite.RequisitoDocumento", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<bool>("Obligatorio")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("TipoTramiteId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TipoTramiteId");
+
+                    b.ToTable("RequisitosDocumento", (string)null);
+                });
+
+            modelBuilder.Entity("Sitram.Domain.TiposTramite.TipoTramite", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("AreaResponsable")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Descripcion")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<decimal>("Tasa")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TiposTramite", (string)null);
+                });
+
             modelBuilder.Entity("Sitram.Domain.Tramites.Actuacion", b =>
                 {
                     b.Property<Guid>("Id")
@@ -118,10 +307,46 @@ namespace Sitram.Infrastructure.Migrations
                     b.ToTable("Actuaciones", (string)null);
                 });
 
+            modelBuilder.Entity("Sitram.Domain.Tramites.Documento", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("HashSha256")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("NombreArchivo")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("RutaAlmacenamiento")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<DateTime>("SubidoUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("TramiteId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TramiteId");
+
+                    b.ToTable("Documentos", (string)null);
+                });
+
             modelBuilder.Entity("Sitram.Domain.Tramites.Tramite", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("AlertaVencimientoEnviada")
+                        .HasColumnType("bit");
 
                     b.Property<Guid>("CiudadanoId")
                         .HasColumnType("uniqueidentifier");
@@ -139,6 +364,9 @@ namespace Sitram.Infrastructure.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
+                    b.Property<DateTime?>("FechaLimiteSubsanacionUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
@@ -153,6 +381,8 @@ namespace Sitram.Infrastructure.Migrations
 
                     b.HasIndex("Codigo")
                         .IsUnique();
+
+                    b.HasIndex("TipoTramiteId");
 
                     b.ToTable("Tramites", (string)null);
                 });
@@ -395,6 +625,39 @@ namespace Sitram.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Sitram.Domain.Ciudadanos.Consentimiento", b =>
+                {
+                    b.HasOne("Sitram.Domain.Ciudadanos.Ciudadano", null)
+                        .WithMany("Consentimientos")
+                        .HasForeignKey("CiudadanoId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("Sitram.Domain.Pagos.Pago", b =>
+                {
+                    b.HasOne("Sitram.Domain.Tramites.Tramite", null)
+                        .WithMany()
+                        .HasForeignKey("TramiteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Sitram.Domain.TiposTramite.PasoFlujo", b =>
+                {
+                    b.HasOne("Sitram.Domain.TiposTramite.TipoTramite", null)
+                        .WithMany("PasosFlujo")
+                        .HasForeignKey("TipoTramiteId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("Sitram.Domain.TiposTramite.RequisitoDocumento", b =>
+                {
+                    b.HasOne("Sitram.Domain.TiposTramite.TipoTramite", null)
+                        .WithMany("Requisitos")
+                        .HasForeignKey("TipoTramiteId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
             modelBuilder.Entity("Sitram.Domain.Tramites.Actuacion", b =>
                 {
                     b.HasOne("Sitram.Domain.Tramites.Tramite", null)
@@ -403,8 +666,39 @@ namespace Sitram.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
+            modelBuilder.Entity("Sitram.Domain.Tramites.Documento", b =>
+                {
+                    b.HasOne("Sitram.Domain.Tramites.Tramite", null)
+                        .WithMany("Documentos")
+                        .HasForeignKey("TramiteId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
             modelBuilder.Entity("Sitram.Domain.Tramites.Tramite", b =>
                 {
+                    b.HasOne("Sitram.Domain.TiposTramite.TipoTramite", null)
+                        .WithMany()
+                        .HasForeignKey("TipoTramiteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Sitram.Domain.Ciudadanos.Ciudadano", b =>
+                {
+                    b.Navigation("Consentimientos");
+                });
+
+            modelBuilder.Entity("Sitram.Domain.TiposTramite.TipoTramite", b =>
+                {
+                    b.Navigation("PasosFlujo");
+
+                    b.Navigation("Requisitos");
+                });
+
+            modelBuilder.Entity("Sitram.Domain.Tramites.Tramite", b =>
+                {
+                    b.Navigation("Documentos");
+
                     b.Navigation("Historial");
                 });
 #pragma warning restore 612, 618

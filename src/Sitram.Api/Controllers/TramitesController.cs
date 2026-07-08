@@ -2,10 +2,14 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Sitram.Application.Auditoria.Queries.ObtenerAuditoriaTramite;
+using Sitram.Application.Tramites.Commands.AdjuntarDocumento;
 using Sitram.Application.Tramites.Commands.IniciarTramite;
 using Sitram.Application.Tramites.Commands.Transiciones;
+using Sitram.Application.Tramites.Queries.DescargarDocumento;
+using Sitram.Application.Tramites.Queries.ListarDocumentosTramite;
 using Sitram.Application.Tramites.Queries.ListarTramitesCiudadano;
 using Sitram.Application.Tramites.Queries.ObtenerEstadoTramite;
+using Sitram.Application.Tramites.Queries.ObtenerReporteTramites;
 
 namespace Sitram.Api.Controllers;
 
@@ -24,6 +28,16 @@ public sealed class TramitesController(ISender sender) : ControllerBase
         var resultado = await sender.Send(
             new ListarTramitesCiudadanoQuery(ciudadanoId, page, pageSize), cancellationToken);
         return Ok(resultado);
+    }
+
+    /// <summary>Reporte de trámites por estado, tipo y periodo (RF-072).</summary>
+    [HttpGet("reporte")]
+    [Authorize(Policy = "ReportesLeer")]
+    public async Task<IActionResult> ObtenerReporte(
+        [FromQuery] DateTime? desde, [FromQuery] DateTime? hasta, CancellationToken ct)
+    {
+        var reporte = await sender.Send(new ObtenerReporteTramitesQuery(desde, hasta), ct);
+        return Ok(reporte);
     }
 
     /// <summary>Inicia un trámite nuevo en estado Borrador (RF-020).</summary>
@@ -108,6 +122,35 @@ public sealed class TramitesController(ISender sender) : ControllerBase
     {
         var eventos = await sender.Send(new ObtenerAuditoriaTramiteQuery(id), ct);
         return Ok(eventos);
+    }
+
+    /// <summary>Adjunta un documento (PDF/imagen) al expediente (RF-021).</summary>
+    [HttpPost("{id:guid}/documentos")]
+    [Authorize(Policy = "TramiteAdjuntar")]
+    [RequestSizeLimit(10_000_000)] // 10 MB (RNF-022)
+    public async Task<IActionResult> AdjuntarDocumento(Guid id, IFormFile archivo, CancellationToken ct)
+    {
+        await using var contenido = archivo.OpenReadStream();
+        var documentoId = await sender.Send(new AdjuntarDocumentoCommand(id, archivo.FileName, contenido), ct);
+        return CreatedAtAction(nameof(ListarDocumentos), new { id }, new { documentoId });
+    }
+
+    /// <summary>Lista los documentos adjuntos del expediente (RF-021).</summary>
+    [HttpGet("{id:guid}/documentos")]
+    [Authorize(Policy = "TramiteConsultar")]
+    public async Task<IActionResult> ListarDocumentos(Guid id, CancellationToken ct)
+    {
+        var documentos = await sender.Send(new ListarDocumentosTramiteQuery(id), ct);
+        return documentos is null ? NotFound() : Ok(documentos);
+    }
+
+    /// <summary>Descarga un documento adjunto del expediente.</summary>
+    [HttpGet("{id:guid}/documentos/{documentoId:guid}")]
+    [Authorize(Policy = "TramiteConsultar")]
+    public async Task<IActionResult> DescargarDocumento(Guid id, Guid documentoId, CancellationToken ct)
+    {
+        var documento = await sender.Send(new DescargarDocumentoQuery(id, documentoId), ct);
+        return documento is null ? NotFound() : File(documento.Contenido, "application/octet-stream", documento.NombreArchivo);
     }
 }
 

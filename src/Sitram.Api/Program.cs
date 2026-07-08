@@ -27,6 +27,7 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddHostedService<AlertaVencimientoBackgroundService>(); // RF-053
 
 // Autenticación JWT (ADR-0005). La clave firmante viene de configuración (User Secrets en
 // desarrollo, variables de entorno en producción) — nunca hardcodeada (errores-conocidos 3.4).
@@ -34,6 +35,9 @@ builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        // Sin esto, "sub" se remapea a una URI larga de XML-SOAP y ICurrentUserService no lo
+        // encuentra: los claims del token quedan exactamente como se emitieron (ADR-0005).
+        options.MapInboundClaims = false;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -58,7 +62,11 @@ builder.Services.AddAuthorizationBuilder()
     .AddPolicy("TramiteObservar", p => p.RequireClaim("permiso", "tramite:observar"))
     .AddPolicy("TramiteAprobar", p => p.RequireClaim("permiso", "tramite:aprobar"))
     .AddPolicy("TramiteRechazar", p => p.RequireClaim("permiso", "tramite:rechazar"))
-    .AddPolicy("AuditoriaLeer", p => p.RequireClaim("permiso", "auditoria:leer"));
+    .AddPolicy("AuditoriaLeer", p => p.RequireClaim("permiso", "auditoria:leer"))
+    .AddPolicy("AdministracionGestionar", p => p.RequireClaim("permiso", "administracion:gestionar"))
+    .AddPolicy("TramitePagar", p => p.RequireClaim("permiso", "tramite:pagar"))
+    .AddPolicy("TramiteAdjuntar", p => p.RequireClaim("permiso", "tramite:adjuntar"))
+    .AddPolicy("ReportesLeer", p => p.RequireClaim("permiso", "reportes:leer"));
 
 var app = builder.Build();
 

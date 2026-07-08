@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Sitram.Application.Common.Interfaces;
+using Sitram.Domain.TiposTramite;
 using Sitram.Infrastructure.Persistence;
 
 namespace Sitram.Integration.Tests;
@@ -31,6 +33,8 @@ public sealed class SitramWebFactory : WebApplicationFactory<Program>
                 ["Jwt:Audience"] = "Sitram.Clientes.Tests",
                 ["Jwt:MinutosExpiracion"] = "15",
                 ["Jwt:DiasExpiracionRefresh"] = "7",
+                // Clave de cifrado de columna, exclusiva de la ejecución de pruebas (RNF-003).
+                ["Cifrado:Clave"] = Convert.ToBase64String(Enumerable.Repeat((byte)7, 64).ToArray()),
             });
         });
 
@@ -43,11 +47,24 @@ public sealed class SitramWebFactory : WebApplicationFactory<Program>
 
             services.AddDbContext<SitramDbContext>(o => o.UseSqlServer(TestConnection));
 
+            // Reemplazar el envío real de correo por un doble de prueba (sin SMTP real).
+            var emailDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IEmailService));
+            if (emailDescriptor is not null) services.Remove(emailDescriptor);
+            services.AddSingleton<FakeEmailService>();
+            services.AddSingleton<IEmailService>(sp => sp.GetRequiredService<FakeEmailService>());
+
             // Recrear el esquema de la BD de prueba desde las migraciones
             using var scope = services.BuildServiceProvider().CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<SitramDbContext>();
             db.Database.EnsureDeleted();
             db.Database.Migrate();
+
+            // Tipo de trámite de referencia para las pruebas (será Id=1: primer registro,
+            // identity autoincremental). Los tests existentes usan tipoTramiteId=1. Tasa = 0
+            // (gratuito) para no activar la puerta de pago (RF-043) en pruebas que no la
+            // ejercitan; las pruebas de Pagos crean su propio tipo de trámite con tasa > 0.
+            db.TiposTramite.Add(TipoTramite.Crear("Licencia de funcionamiento", "Trámite de prueba", "Rentas", 0m));
+            db.SaveChanges();
         });
     }
 }

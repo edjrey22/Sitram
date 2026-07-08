@@ -7,6 +7,17 @@ namespace Sitram.Integration.Tests.Auth;
 [Collection("Integración")]
 public class AuthEndpointTests(SitramWebFactory factory)
 {
+    private static int _contadorDni;
+
+    // Rango distinto al de AuthTestHelper (10_000_000+) para evitar colisiones de Dni único.
+    private static string GenerarDni() => (20_000_000 + Interlocked.Increment(ref _contadorDni)).ToString();
+
+    private static object PerfilDePrueba(string userName, string email, string password) => new
+    {
+        userName, email, password,
+        nombres = "Nombre", apellidos = "Apellido", dni = GenerarDni(), telefono = "987654321", direccion = "Av. Test 123",
+    };
+
     [Fact]
     public async Task Registro_ConDatosValidos_Devuelve201()
     {
@@ -14,7 +25,7 @@ public class AuthEndpointTests(SitramWebFactory factory)
         var userName = $"reg_{Guid.NewGuid():N}";
 
         var response = await client.PostAsJsonAsync("/api/auth/registro",
-            new { userName, email = $"{userName}@test.local", password = "Clave#Segura123" });
+            PerfilDePrueba(userName, $"{userName}@test.local", "Clave#Segura123"));
 
         response.StatusCode.Should().Be(HttpStatusCode.Created);
     }
@@ -26,8 +37,7 @@ public class AuthEndpointTests(SitramWebFactory factory)
         var client = factory.CreateClient();
         var userName = $"login_{Guid.NewGuid():N}";
         const string password = "Clave#Segura123";
-        await client.PostAsJsonAsync("/api/auth/registro",
-            new { userName, email = $"{userName}@test.local", password });
+        await client.PostAsJsonAsync("/api/auth/registro", PerfilDePrueba(userName, $"{userName}@test.local", password));
 
         // Act
         var response = await client.PostAsJsonAsync("/api/auth/login", new { userName, password });
@@ -46,7 +56,7 @@ public class AuthEndpointTests(SitramWebFactory factory)
         var client = factory.CreateClient();
         var userName = $"malapass_{Guid.NewGuid():N}";
         await client.PostAsJsonAsync("/api/auth/registro",
-            new { userName, email = $"{userName}@test.local", password = "Clave#Segura123" });
+            PerfilDePrueba(userName, $"{userName}@test.local", "Clave#Segura123"));
 
         // Act
         var response = await client.PostAsJsonAsync("/api/auth/login", new { userName, password = "Incorrecta1!" });
@@ -62,7 +72,7 @@ public class AuthEndpointTests(SitramWebFactory factory)
         var client = factory.CreateClient();
         var userName = $"bloqueo_{Guid.NewGuid():N}";
         await client.PostAsJsonAsync("/api/auth/registro",
-            new { userName, email = $"{userName}@test.local", password = "Clave#Segura123" });
+            PerfilDePrueba(userName, $"{userName}@test.local", "Clave#Segura123"));
 
         // Act: 5 intentos con contraseña incorrecta
         for (var i = 0; i < 5; i++)
@@ -82,8 +92,7 @@ public class AuthEndpointTests(SitramWebFactory factory)
         var client = factory.CreateClient();
         var userName = $"refresh_{Guid.NewGuid():N}";
         const string password = "Clave#Segura123";
-        await client.PostAsJsonAsync("/api/auth/registro",
-            new { userName, email = $"{userName}@test.local", password });
+        await client.PostAsJsonAsync("/api/auth/registro", PerfilDePrueba(userName, $"{userName}@test.local", password));
         var login = await client.PostAsJsonAsync("/api/auth/login", new { userName, password });
         var tokensOriginales = (await login.Content.ReadFromJsonAsync<AuthTestHelper.TokenResponseTest>())!;
 

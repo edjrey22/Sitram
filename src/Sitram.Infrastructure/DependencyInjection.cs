@@ -3,9 +3,15 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Sitram.Application.Common.Interfaces;
+using Sitram.Domain.Ciudadanos;
+using Sitram.Domain.Pagos;
+using Sitram.Domain.TiposTramite;
 using Sitram.Domain.Tramites;
+using Sitram.Infrastructure.Almacenamiento;
 using Sitram.Infrastructure.Identity;
+using Sitram.Infrastructure.Notificaciones;
 using Sitram.Infrastructure.Persistence;
+using Sitram.Infrastructure.Persistence.Cifrado;
 
 namespace Sitram.Infrastructure;
 
@@ -14,12 +20,21 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
+        // Cifrado de columna (RNF-003): singleton, solo lee la clave una vez de configuración.
+        services.AddSingleton<CifradoColumna>();
+
         // DbContext con ciclo de vida Scoped (una instancia por petición) — errores-conocidos 2.2
         services.AddDbContext<SitramDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("SitramDb")));
 
         services.AddScoped<ITramiteRepository, TramiteRepository>();
         services.AddScoped<ITramitesReadService, TramitesReadService>();
+        services.AddScoped<ITipoTramiteRepository, TipoTramiteRepository>();
+        services.AddScoped<ITiposTramiteReadService, TiposTramiteReadService>();
+        services.AddScoped<ICiudadanoRepository, CiudadanoRepository>();
+        services.AddScoped<IPagoRepository, PagoRepository>();
+        services.AddScoped<IPagoService, PagoService>();
+        services.AddSingleton<IAlmacenamientoArchivos, AlmacenamientoArchivosLocal>();
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<SitramDbContext>());
 
         // Identity: solo usuarios (sin sus tablas de rol; el RBAC usa Rol/Permiso propios)
@@ -38,15 +53,16 @@ public static class DependencyInjection
                 options.User.RequireUniqueEmail = true;
             })
             .AddSignInManager()
-            .AddEntityFrameworkStores<SitramDbContext>();
+            .AddEntityFrameworkStores<SitramDbContext>()
+            .AddDefaultTokenProviders(); // requerido para el token de confirmación de correo (RF-001)
 
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddScoped<IJwtTokenService, JwtTokenService>();
         services.AddScoped<IRefreshTokenService, RefreshTokenService>();
         services.AddScoped<IAuditoriaService, AuditoriaService>();
         services.AddScoped<IAuditoriaReadService, AuditoriaReadService>();
+        services.AddScoped<IEmailService, EmailService>();
 
-        // TODO(SITRAM): servicios de correo y pagos (siguiente sprint).
         return services;
     }
 }

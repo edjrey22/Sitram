@@ -27,6 +27,8 @@ public sealed class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Ex
             var (status, title) = ex switch
             {
                 ValidationException => (HttpStatusCode.BadRequest, "Error de validación"),
+                TipoTramiteNoDisponibleException => (HttpStatusCode.BadRequest, "Tipo de trámite no disponible"),
+                PagoRequeridoException => (HttpStatusCode.PaymentRequired, "Pago requerido"),
                 AutenticacionInvalidaException => (HttpStatusCode.Unauthorized, "Autenticación inválida"),
                 NotFoundException => (HttpStatusCode.NotFound, "Recurso no encontrado"),
                 TransicionInvalidaException => (HttpStatusCode.Conflict, "Transición de estado inválida"),

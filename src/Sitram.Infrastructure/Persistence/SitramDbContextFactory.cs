@@ -1,6 +1,8 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.Extensions.Configuration;
+using Sitram.Infrastructure.Persistence.Cifrado;
 
 namespace Sitram.Infrastructure.Persistence;
 
@@ -16,8 +18,17 @@ public sealed class SitramDbContextFactory : IDesignTimeDbContextFactory<SitramD
             .UseSqlServer(@"Server=(localdb)\MSSQLLocalDB;Database=SitramDb;Trusted_Connection=True;TrustServerCertificate=True")
             .Options;
 
+        // Las migraciones solo necesitan la FORMA del modelo (tipo de columna varbinary), nunca
+        // cifran datos reales: basta una clave de relleno para construir CifradoColumna.
+        var configuracionDiseno = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Cifrado:Clave"] = Convert.ToBase64String(new byte[64]),
+            })
+            .Build();
+
         // Las migraciones no disparan eventos de dominio; basta un publisher inerte.
-        return new SitramDbContext(options, new PublisherInerte());
+        return new SitramDbContext(options, new PublisherInerte(), new CifradoColumna(configuracionDiseno));
     }
 
     private sealed class PublisherInerte : IPublisher
