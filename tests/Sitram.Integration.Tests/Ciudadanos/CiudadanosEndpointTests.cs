@@ -37,7 +37,7 @@ public class CiudadanosEndpointTests(SitramWebFactory factory)
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<SitramDbContext>();
         var dniCrudo = await db.Database
-            .SqlQuery<byte[]>($"SELECT Dni AS Value FROM Ciudadanos WHERE Id = {id}")
+            .SqlQuery<byte[]>($"SELECT \"Dni\" AS \"Value\" FROM \"Ciudadanos\" WHERE \"Id\" = {id}")
             .FirstAsync();
 
         // Assert: los bytes crudos NO contienen el DNI en texto plano

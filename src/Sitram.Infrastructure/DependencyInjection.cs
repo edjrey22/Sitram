@@ -24,9 +24,12 @@ public static class DependencyInjection
         // Cifrado de columna (RNF-003): singleton, solo lee la clave una vez de configuración.
         services.AddSingleton<CifradoColumna>();
 
-        // DbContext con ciclo de vida Scoped (una instancia por petición) — errores-conocidos 2.2
+        // DbContext con ciclo de vida Scoped (una instancia por petición) — errores-conocidos 2.2.
+        // EnableRetryOnFailure: la base vive en un Postgres administrado (Supabase) sobre la red,
+        // no en el mismo host — reintenta ante fallas transitorias de conexión en vez de romper
+        // la petición a la primera desconexión intermitente.
         services.AddDbContext<SitramDbContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString("SitramDb")));
+            options.UseNpgsql(configuration.GetConnectionString("SitramDb"), npgsql => npgsql.EnableRetryOnFailure()));
 
         services.AddScoped<ITramiteRepository, TramiteRepository>();
         services.AddScoped<ITramitesReadService, TramitesReadService>();

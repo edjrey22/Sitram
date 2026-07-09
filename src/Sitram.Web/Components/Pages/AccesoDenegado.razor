@@ -1,0 +1,19 @@
+@page "/acceso-denegado"
+@layout Layout.MainLayout
+
+<PageTitle>Acceso denegado — SITRAM</PageTitle>
+
+<div class="auth-page">
+    <div class="auth-card" style="text-align:center">
+        <div style="width:58px;height:58px;border-radius:17px;background:var(--danger-soft);color:var(--danger);display:flex;align-items:center;justify-content:center;margin:0 auto 0.9rem">
+            <Icon Name="lock" Size="27" />
+        </div>
+        <div style="font-weight:800;font-size:1.14rem;letter-spacing:-0.015em">No tienes acceso a esta página</div>
+        <p class="card-sub" style="margin-top:0.4rem">
+            Tu cuenta no tiene el permiso necesario para esta acción. Si crees que es un error, contacta al Administrador.
+        </p>
+        <a href="/" class="btn btn-primary" style="margin-top:1rem;display:inline-flex;width:auto;padding:0.65rem 1.4rem">
+            Volver al inicio
+        </a>
+    </div>
+</div>

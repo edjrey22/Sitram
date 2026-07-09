@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Sitram.Application.Common.Interfaces;
+using Sitram.Domain.Ciudadanos;
 using Sitram.Infrastructure.Persistence;
 
 namespace Sitram.Infrastructure.Identity;
@@ -9,7 +10,8 @@ namespace Sitram.Infrastructure.Identity;
 public sealed class IdentityService(
     UserManager<ApplicationUser> userManager,
     SignInManager<ApplicationUser> signInManager,
-    SitramDbContext context) : IIdentityService
+    SitramDbContext context,
+    ICiudadanoRepository ciudadanoRepositorio) : IIdentityService
 {
     private const string RolPorDefecto = "Ciudadano";
     private const string RolOficialDatos = "OficialDatosPersonales";
@@ -36,7 +38,12 @@ public sealed class IdentityService(
     public async Task<ValidarCredencialesResultado> ValidarCredencialesAsync(
         string userName, string password, CancellationToken cancellationToken = default)
     {
-        var usuario = await userManager.FindByNameAsync(userName);
+        // El campo de login acepta "Usuario o DNI" (Login.razor, mockup validado): si no hay
+        // usuario con ese nombre y el valor tiene forma de DNI, se resuelve al ciudadano dueño
+        // de ese DNI (comparte Id con su usuario de Identity, relación 1:1).
+        var usuario = await userManager.FindByNameAsync(userName)
+            ?? await ResolverUsuarioPorDniAsync(userName, cancellationToken);
+
         if (usuario is null)
             return new ValidarCredencialesResultado(false, false, Guid.Empty);
 
@@ -47,6 +54,16 @@ public sealed class IdentityService(
             return new ValidarCredencialesResultado(false, true, usuario.Id);
 
         return new ValidarCredencialesResultado(resultado.Succeeded, false, usuario.Id);
+    }
+
+    private async Task<ApplicationUser?> ResolverUsuarioPorDniAsync(string posibleDni, CancellationToken cancellationToken)
+    {
+        // No tiene forma de DNI (8 dígitos numéricos): no es un intento de login por DNI.
+        if (posibleDni.Length != 8 || !posibleDni.All(char.IsDigit))
+            return null;
+
+        var ciudadano = await ciudadanoRepositorio.ObtenerPorDniAsync(new Dni(posibleDni), cancellationToken);
+        return ciudadano is null ? null : await userManager.FindByIdAsync(ciudadano.Id.Value.ToString());
     }
 
     public async Task<IReadOnlyList<string>> ObtenerPermisosAsync(Guid usuarioId, CancellationToken cancellationToken = default) =>
@@ -163,5 +180,33 @@ public sealed class IdentityService(
         if (usuario is null) return false;
 
         return await userManager.VerifyTwoFactorTokenAsync(usuario, TokenOptions.DefaultEmailProvider, codigo);
+    }
+
+    public async Task<CrearUsuarioResultado> CrearUsuarioConRolAsync(
+        string userName, string email, string password, string nombreRol, CancellationToken cancellationToken = default)
+    {
+        var usuario = new ApplicationUser { UserName = userName, Email = email };
+        var resultado = await userManager.CreateAsync(usuario, password);
+
+        if (!resultado.Succeeded)
+            return new CrearUsuarioResultado(false, Guid.Empty, resultado.Errors.Select(e => e.Description).ToList());
+
+        var rol = await context.Roles.FirstOrDefaultAsync(r => r.Nombre == nombreRol, cancellationToken)
+            ?? throw new InvalidOperationException($"El rol '{nombreRol}' no está sembrado.");
+
+        // El Oficial de Datos es singular: si se crea uno nuevo, se retira el rol a quien lo tuviera.
+        if (nombreRol == RolOficialDatos)
+        {
+            var asignacionesPrevias = context.UsuarioRoles.Where(ur => ur.RolId == rol.RolId);
+            context.UsuarioRoles.RemoveRange(asignacionesPrevias);
+        }
+
+        context.UsuarioRoles.Add(new UsuarioRol { UsuarioId = usuario.Id, RolId = rol.RolId });
+        await context.SaveChangesAsync(cancellationToken);
+
+        // RF-005: toda cuenta de funcionario exige segundo factor, sin excepción de rol.
+        await HabilitarMfaAsync(usuario.Id, cancellationToken);
+
+        return new CrearUsuarioResultado(true, usuario.Id, []);
     }
 }

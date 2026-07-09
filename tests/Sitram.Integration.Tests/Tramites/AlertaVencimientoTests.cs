@@ -41,7 +41,7 @@ public class AlertaVencimientoTests(SitramWebFactory factory)
         {
             var db = scope.ServiceProvider.GetRequiredService<SitramDbContext>();
             await db.Database.ExecuteSqlInterpolatedAsync(
-                $"UPDATE Tramites SET FechaLimiteSubsanacionUtc = {DateTime.UtcNow.AddDays(-1)} WHERE Id = {tramite.Id}");
+                $"UPDATE \"Tramites\" SET \"FechaLimiteSubsanacionUtc\" = {DateTime.UtcNow.AddDays(-1)} WHERE \"Id\" = {tramite.Id}");
         }
 
         // Act: se invoca directamente lo que el job ejecutaría en su siguiente tick

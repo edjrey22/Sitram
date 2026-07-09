@@ -13,4 +13,9 @@ public sealed class CiudadanoRepository(SitramDbContext context) : ICiudadanoRep
         await context.Ciudadanos
             .Include(c => c.Consentimientos)
             .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
+
+    // El converter de Dni (cifrado determinista) se aplica también al parámetro de la consulta,
+    // así que esta comparación se traduce a buscar por igualdad de bytes cifrados en SQL.
+    public async Task<Ciudadano?> ObtenerPorDniAsync(Dni dni, CancellationToken cancellationToken = default) =>
+        await context.Ciudadanos.FirstOrDefaultAsync(c => c.Dni == dni, cancellationToken);
 }

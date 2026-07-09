@@ -28,19 +28,19 @@ public sealed class CiudadanoConfiguration(CifradoColumna cifrado) : IEntityType
         // Cifrado determinista (Dni, Correo): permite índice único / búsqueda por igualdad.
         builder.Property(c => c.Dni)
             .HasConversion(dni => cifrado.CifrarDeterministico(dni.Valor), bytes => new Dni(cifrado.Descifrar(bytes)))
-            .HasColumnType("varbinary(128)")
+            .HasColumnType("bytea")
             .IsRequired();
         builder.HasIndex(c => c.Dni).IsUnique();
 
         builder.Property(c => c.Correo)
             .HasConversion(correo => cifrado.CifrarDeterministico(correo), bytes => cifrado.Descifrar(bytes))
-            .HasColumnType("varbinary(256)")
+            .HasColumnType("bytea")
             .IsRequired();
 
         // Cifrado aleatorio (Telefono): no requiere búsqueda por igualdad.
         builder.Property(c => c.Telefono)
             .HasConversion(tel => cifrado.CifrarAleatorio(tel), bytes => cifrado.Descifrar(bytes))
-            .HasColumnType("varbinary(128)")
+            .HasColumnType("bytea")
             .IsRequired();
 
         builder.Property(c => c.EstaAnonimizado).IsRequired();

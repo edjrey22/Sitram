@@ -34,6 +34,8 @@ public static class IdentitySeeder
 
     public static async Task SeedAsync(SitramDbContext context, CancellationToken cancellationToken = default)
     {
+        await context.Database.EnsureCreatedAsync(cancellationToken);
+
         foreach (var nombre in Roles)
         {
             if (!await context.Roles.AnyAsync(r => r.Nombre == nombre, cancellationToken))

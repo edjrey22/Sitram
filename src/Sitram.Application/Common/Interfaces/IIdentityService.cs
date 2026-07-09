@@ -51,6 +51,15 @@ public interface IIdentityService
     /// <summary>Marca la cuenta como sujeta a segundo factor obligatorio (RF-005, cuentas de funcionario).</summary>
     Task HabilitarMfaAsync(Guid usuarioId, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Crea una cuenta de funcionario con el rol indicado (no "Ciudadano": ese solo se obtiene por
+    /// autorregistro). Solo el Administrador puede invocar esta vía — a diferencia del autorregistro
+    /// público, aquí el rol se decide en el momento de la creación, no después. Habilita MFA
+    /// automáticamente (RF-005: toda cuenta de funcionario exige segundo factor).
+    /// </summary>
+    Task<CrearUsuarioResultado> CrearUsuarioConRolAsync(
+        string userName, string email, string password, string nombreRol, CancellationToken cancellationToken = default);
+
     /// <summary>Indica si la cuenta exige segundo factor en el inicio de sesión (RF-005).</summary>
     Task<bool> RequiereMfaAsync(Guid usuarioId, CancellationToken cancellationToken = default);
 

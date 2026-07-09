@@ -1,0 +1,92 @@
+@page "/administracion/funcionarios"
+@rendermode InteractiveServer
+@attribute [Authorize(Policy = "AdministracionGestionar")]
+@using Sitram.Application.Administracion.Commands.CrearCuentaFuncionario
+@inject ISender Sender
+
+<PageTitle>Crear cuenta de funcionario — SITRAM</PageTitle>
+
+<h1>Crear cuenta de funcionario</h1>
+<p class="card-sub" style="margin-bottom:1.1rem">
+    Solo el Administrador crea estas cuentas, con el rol ya elegido. El autorregistro público siempre crea Ciudadanos, nunca funcionarios.
+</p>
+
+@if (_mensajeExito is not null)
+{
+    <div class="card" style="border-color:var(--brand);background:var(--brand-soft);color:var(--brand-deep);font-size:0.85rem">
+        @_mensajeExito
+    </div>
+}
+@if (_error is not null)
+{
+    <div class="alert alert-danger"><Icon Name="alert" Size="16" /><span>@_error</span></div>
+}
+
+<div class="card">
+    <label class="field-label" for="f-user">Usuario</label>
+    <input class="field no-icon" id="f-user" @bind="_userName" />
+
+    <label class="field-label" for="f-email">Correo</label>
+    <input class="field no-icon" id="f-email" @bind="_email" />
+
+    <label class="field-label" for="f-pass">Contraseña temporal</label>
+    <input class="field no-icon" id="f-pass" type="password" @bind="_password" />
+
+    <label class="field-label" for="f-rol">Rol</label>
+    <select class="field no-icon" id="f-rol" @bind="_rol">
+        <option value="">Selecciona un rol…</option>
+        @foreach (var rol in RolesFuncionario.Permitidos)
+        {
+            <option value="@rol">@rol</option>
+        }
+    </select>
+
+    <button class="btn btn-primary" style="margin-top:0.3rem" disabled="@_procesando" @onclick="CrearAsync">
+        Crear cuenta de funcionario
+    </button>
+</div>
+
+<div class="section-title">Roles disponibles</div>
+<div class="card">
+    <p class="card-sub" style="margin:0">
+        MesaDePartes, Revisor, JefeDeArea, Administrador, Auditor, OficialDatosPersonales. Todas exigen verificación en dos pasos (MFA) desde su primer inicio de sesión (RF-005). Designar OficialDatosPersonales retira el rol a quien lo tuviera antes (el cargo es singular, RF-066).
+    </p>
+</div>
+
+@code {
+    private string _userName = "";
+    private string _email = "";
+    private string _password = "";
+    private string _rol = "";
+    private bool _procesando;
+    private string? _error;
+    private string? _mensajeExito;
+
+    private async Task CrearAsync()
+    {
+        _error = null;
+        _mensajeExito = null;
+
+        if (string.IsNullOrWhiteSpace(_rol))
+        {
+            _error = "Selecciona un rol.";
+            return;
+        }
+
+        _procesando = true;
+        try
+        {
+            await Sender.Send(new CrearCuentaFuncionarioCommand(_userName, _email, _password, _rol));
+            _mensajeExito = $"Cuenta '{_userName}' creada con el rol {_rol}. Se envió el aviso al correo {_email}.";
+            _userName = _email = _password = _rol = "";
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _procesando = false;
+        }
+    }
+}

@@ -11,15 +11,27 @@ using System.Linq;
 namespace Sitram.Integration.Tests;
 
 /// <summary>
-
-/// Arranca la API en memoria apuntando a una base de datos de prueba en LocalDB
-/// (SitramDb_Test), con el esquema recreado desde las migraciones.
+/// Arranca la API en memoria apuntando a una base de datos de prueba en Postgres (Supabase), con
+/// el esquema recreado desde las migraciones. La cadena base (host/usuario/contraseña, sin
+/// credenciales en el código fuente) vive en User Secrets bajo "ConnectionStrings:SitramDbTestBase";
+/// aquí solo se le añade un nombre de base único por corrida para evitar choques entre ejecuciones.
 /// </summary>
 public sealed class SitramWebFactory : WebApplicationFactory<Program>
 {
-    // Use a unique database per test run by appending a guid, this is important to avoid clashes
-    private readonly string _testConnection = 
-        $@"Server=(localdb)\TestDB;Database=SitramDb_Test_{Guid.NewGuid()};Trusted_Connection=True;TrustServerCertificate=True";
+    private readonly string _testConnection = ConstruirCadenaDePrueba();
+
+    private static string ConstruirCadenaDePrueba()
+    {
+        var configuracion = new ConfigurationBuilder()
+            .AddUserSecrets<SitramWebFactory>()
+            .Build();
+
+        var baseConexion = configuracion.GetConnectionString("SitramDbTestBase")
+            ?? throw new InvalidOperationException(
+                "Falta el User Secret 'ConnectionStrings:SitramDbTestBase' del proyecto de pruebas de integración.");
+
+        return $"{baseConexion};Database=sitram_test_{Guid.NewGuid():N}";
+    }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -49,7 +61,7 @@ public sealed class SitramWebFactory : WebApplicationFactory<Program>
                 d => d.ServiceType == typeof(DbContextOptions<SitramDbContext>));
             if (descriptor is not null) services.Remove(descriptor);
 
-            services.AddDbContext<SitramDbContext>(o => o.UseSqlServer(_testConnection));
+            services.AddDbContext<SitramDbContext>(o => o.UseNpgsql(_testConnection));
 
 
 

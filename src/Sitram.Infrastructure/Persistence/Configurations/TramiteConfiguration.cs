@@ -33,8 +33,14 @@ public sealed class TramiteConfiguration : IEntityTypeConfiguration<Tramite>
         builder.Property(t => t.AlertaVencimientoEnviada).IsRequired();
 
         // Concurrencia optimista: evita la doble aprobación (errores-conocidos 1.1, modelo-datos §5).
-        // Propiedad sombra: no contamina el dominio.
-        builder.Property<byte[]>("RowVersion").IsRowVersion();
+        // Postgres no tiene "rowversion" (específico de SQL Server): se mapea la columna de
+        // sistema "xmin", que Postgres ya reescribe en cada UPDATE de la fila, como token de
+        // concurrencia (patrón documentado por Npgsql para EF Core).
+        builder.Property<uint>("xmin")
+            .HasColumnName("xmin")
+            .HasColumnType("xid")
+            .ValueGeneratedOnAddOrUpdate()
+            .IsConcurrencyToken();
 
         builder.HasIndex(t => t.Codigo).IsUnique();   // UQ_Tramite_Codigo (correlativo público)
         builder.HasIndex(t => t.CiudadanoId);         // IX_Tramite_Ciudadano (RF-050)

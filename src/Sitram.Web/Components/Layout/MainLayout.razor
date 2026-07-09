@@ -29,9 +29,16 @@
         <AuthorizeView>
             <Authorized>
                 <nav class="side-nav">
-                    <NavLink href="/" Match="NavLinkMatch.All"><Icon Name="home" Size="16" /> Mis trámites</NavLink>
-                    <NavLink href="/tramites/nuevo"><Icon Name="plus" Size="16" /> Nuevo trámite</NavLink>
+                    <AuthorizeView Policy="TramiteConsultar" Context="verTramites">
+                        <Authorized><NavLink href="/" Match="NavLinkMatch.All"><Icon Name="home" Size="16" /> Mis trámites</NavLink></Authorized>
+                    </AuthorizeView>
+                    <AuthorizeView Policy="TramiteIniciar" Context="nuevoTramite">
+                        <Authorized><NavLink href="/tramites/nuevo"><Icon Name="plus" Size="16" /> Nuevo trámite</NavLink></Authorized>
+                    </AuthorizeView>
                     <NavLink href="/notificaciones"><Icon Name="bell" Size="16" /> Notificaciones</NavLink>
+                    <AuthorizeView Policy="AdministracionGestionar" Context="admin">
+                        <Authorized><NavLink href="/administracion/funcionarios"><Icon Name="user" Size="16" /> Crear funcionario</NavLink></Authorized>
+                    </AuthorizeView>
                 </nav>
             </Authorized>
         </AuthorizeView>
@@ -44,10 +51,17 @@
     <AuthorizeView>
         <Authorized>
             <nav class="bottom-nav">
-                <NavLink href="/" Match="NavLinkMatch.All"><Icon Name="home" Size="20" /><span>Inicio</span></NavLink>
-                <NavLink href="/tramites/nuevo"><Icon Name="file" Size="20" /><span>Trámites</span></NavLink>
+                <AuthorizeView Policy="TramiteConsultar" Context="verTramitesMovil">
+                    <Authorized><NavLink href="/" Match="NavLinkMatch.All"><Icon Name="home" Size="20" /><span>Inicio</span></NavLink></Authorized>
+                </AuthorizeView>
+                <AuthorizeView Policy="TramiteIniciar" Context="nuevoTramiteMovil">
+                    <Authorized><NavLink href="/tramites/nuevo"><Icon Name="file" Size="20" /><span>Trámites</span></NavLink></Authorized>
+                </AuthorizeView>
                 <NavLink href="/notificaciones"><Icon Name="bell" Size="20" /><span>Avisos</span></NavLink>
                 <NavLink href="/perfil"><Icon Name="user" Size="20" /><span>Perfil</span></NavLink>
+                <AuthorizeView Policy="AdministracionGestionar" Context="admin">
+                    <Authorized><NavLink href="/administracion/funcionarios"><Icon Name="plus" Size="20" /><span>Crear</span></NavLink></Authorized>
+                </AuthorizeView>
             </nav>
         </Authorized>
     </AuthorizeView>
