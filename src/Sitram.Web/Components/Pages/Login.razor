@@ -20,8 +20,15 @@
                 <span>@Error</span>
             </div>
         }
+        @if (!string.IsNullOrWhiteSpace(Exito))
+        {
+            <div class="card" style="border-color:var(--brand);background:var(--brand-soft);color:var(--brand-deep);font-size:0.85rem">
+                @Exito
+            </div>
+        }
 
         <form method="post" action="/auth/login">
+            <input type="hidden" name="returnUrl" value="@ReturnUrl" />
             <label class="field-label" for="userName">Usuario o DNI</label>
             <div class="field-wrap">
                 <Icon Name="user" Size="15" />
@@ -39,7 +46,9 @@
             </button>
         </form>
 
-        <div class="link-row">¿Olvidaste tu contraseña?</div>
+        <div class="link-row">
+            <a href="/recuperar-contrasena" style="color:var(--brand-deep);font-weight:700">¿Olvidaste tu contraseña?</a>
+        </div>
 
         <div class="card" style="text-align:center;font-size:0.78rem;color:var(--ink-soft);margin-top:0.55rem">
             ¿Primera vez? <a href="/registro" style="color:var(--brand-deep);font-weight:700">Crea tu cuenta</a>
@@ -55,4 +64,10 @@
 @code {
     [SupplyParameterFromQuery]
     public string? Error { get; set; }
+
+    [SupplyParameterFromQuery(Name = "exito")]
+    public string? Exito { get; set; }
+
+    [SupplyParameterFromQuery(Name = "returnUrl")]
+    public string? ReturnUrl { get; set; }
 }

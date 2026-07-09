@@ -19,8 +19,14 @@ public sealed class EmailService(IConfiguration configuration, ILogger<EmailServ
         var host = configuration["Smtp:Host"];
         if (string.IsNullOrWhiteSpace(host))
         {
+            // Sin SMTP el cuerpo TIENE que ir al log: contiene el código MFA (RF-005) y los
+            // enlaces de verificación/recuperación (RF-001/RF-004). Si solo se registrara el
+            // asunto, esos flujos serían imposibles de completar en desarrollo (un funcionario
+            // con MFA no podría iniciar sesión jamás). Esta rama nunca corre en producción,
+            // donde Smtp:Host viene del entorno.
             logger.LogInformation(
-                "Correo simulado (SMTP no configurado) para {Destinatario}: {Asunto}", EnmascararCorreo(destino), asunto);
+                "Correo simulado (SMTP no configurado) para {Destinatario}: {Asunto}\n--- CUERPO (solo visible en desarrollo) ---\n{Cuerpo}",
+                EnmascararCorreo(destino), asunto, cuerpo);
             return;
         }
 

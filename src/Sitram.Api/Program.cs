@@ -13,6 +13,14 @@ using Sitram.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Carga explícita de User Secrets por su UserSecretsId: WebApplication.CreateBuilder solo los
+// añade automáticamente si detecta ASPNETCORE_ENVIRONMENT=Development, y algunos lanzadores
+// (p. ej. depurar desde Visual Studio) no siempre propagan esa variable al proceso. Forzarlo aquí
+// garantiza que la cadena real de Supabase y la 'Cifrado:Clave' se lean sin depender del entorno.
+// La variante por GUID es opcional por naturaleza (si el archivo de secrets no existe, la fuente
+// queda vacía), así que es inofensiva en producción, donde la config viene de variables de entorno.
+builder.Configuration.AddUserSecrets("40aa4e79-a870-44c3-aff7-5ca151e5a931"); // UserSecretsId de Sitram.Api
+
 // Logging estructurado (Serilog) — la política de enmascarado de datos personales se añade en Sprint 5 (ADR-0004)
 builder.Host.UseSerilog((context, config) =>
     config.ReadFrom.Configuration(context.Configuration)

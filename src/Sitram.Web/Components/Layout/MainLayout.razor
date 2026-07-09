@@ -37,7 +37,10 @@
                     </AuthorizeView>
                     <NavLink href="/notificaciones"><Icon Name="bell" Size="16" /> Notificaciones</NavLink>
                     <AuthorizeView Policy="AdministracionGestionar" Context="admin">
-                        <Authorized><NavLink href="/administracion/funcionarios"><Icon Name="user" Size="16" /> Crear funcionario</NavLink></Authorized>
+                        <Authorized>
+                            <NavLink href="/administracion/funcionarios"><Icon Name="user" Size="16" /> Crear funcionario</NavLink>
+                            <NavLink href="/administracion/tipos-tramite"><Icon Name="file" Size="16" /> Tipos de trámite</NavLink>
+                        </Authorized>
                     </AuthorizeView>
                 </nav>
             </Authorized>

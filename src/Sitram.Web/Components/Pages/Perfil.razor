@@ -9,11 +9,11 @@
 
 <h1>Mi perfil</h1>
 
-@if (_perfil is null)
+@if (_cargando)
 {
     <p>Cargando…</p>
 }
-else
+else if (_perfil is not null)
 {
     <div class="card">
         <div class="card-row" style="margin-bottom:0.6rem">
@@ -30,10 +30,34 @@ else
     <div class="section-title">Tus derechos ARCO (Ley 29733)</div>
     <div class="card"><p class="card-sub" style="margin:0">Acceso, Rectificación, Cancelación y Oposición sobre tus datos personales. Próximamente disponibles desde esta pantalla.</p></div>
 }
+else
+{
+    @* Cuenta de funcionario: no tiene perfil de ciudadano (fila en Ciudadanos), solo credenciales. *@
+    <div class="card">
+        <div class="card-row" style="margin-bottom:0.6rem">
+            <p class="card-title" style="font-size:0.95rem">@_userName</p>
+        </div>
+        <p class="card-sub" style="margin:0">
+            Cuenta institucional de funcionario. Los datos personales de esta pantalla aplican solo a cuentas de ciudadano.
+        </p>
+    </div>
+}
 
 @code {
+    private bool _cargando = true;
     private CiudadanoPerfilDto? _perfil;
+    private string _userName = "";
 
-    protected override async Task OnInitializedAsync() =>
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthState { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
         _perfil = await Sender.Send(new ObtenerPerfilCiudadanoQuery(CurrentUser.UsuarioId!.Value));
+
+        if (_perfil is null && AuthState is not null)
+            _userName = (await AuthState).User.Identity?.Name ?? "Funcionario";
+
+        _cargando = false;
+    }
 }

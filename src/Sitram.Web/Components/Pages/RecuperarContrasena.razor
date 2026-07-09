@@ -1,0 +1,71 @@
+@page "/recuperar-contrasena"
+@layout Layout.MainLayout
+@rendermode InteractiveServer
+@using Sitram.Application.Auth.Commands.SolicitarRecuperacionContrasena
+@inject ISender Sender
+
+<PageTitle>Recuperar contraseña — SITRAM</PageTitle>
+
+<div class="auth-page">
+    <div class="auth-card">
+        <div style="text-align:center;margin-bottom:1.8rem">
+            <div style="width:58px;height:58px;border-radius:17px;background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 0.9rem;box-shadow:0 6px 18px rgba(197,138,20,0.35)">
+                <Icon Name="lock" Size="27" />
+            </div>
+            <div style="font-weight:800;font-size:1.14rem;letter-spacing:-0.015em">Recupera tu contraseña</div>
+            <div style="font-size:0.76rem;color:var(--ink-faint);margin-top:0.28rem">
+                Te enviaremos un enlace de restablecimiento por correo (RF-004)
+            </div>
+        </div>
+
+        @if (_enviado)
+        {
+            <div class="card" style="border-color:var(--brand);background:var(--brand-soft);color:var(--brand-deep);font-size:0.85rem">
+                Si el correo está registrado, recibirás un enlace para restablecer tu contraseña en unos minutos.
+            </div>
+        }
+        else
+        {
+            <label class="field-label" for="rc-email">Correo electrónico</label>
+            <div class="field-wrap">
+                <Icon Name="bell" Size="15" />
+                <input class="field" id="rc-email" type="email" autocomplete="email" @bind="_email" />
+            </div>
+
+            <button class="btn btn-primary" disabled="@_procesando" @onclick="SolicitarAsync">
+                @(_procesando ? "Enviando…" : "Enviar enlace") <Icon Name="chev" Size="15" />
+            </button>
+        }
+
+        <div class="card" style="text-align:center;font-size:0.78rem;color:var(--ink-soft);margin-top:0.8rem">
+            <a href="/login" style="color:var(--brand-deep);font-weight:700">Volver a iniciar sesión</a>
+        </div>
+
+        <div class="trust-row">
+            <Icon Name="lock" Size="12" />
+            Nunca revelamos si un correo está registrado o no
+        </div>
+    </div>
+</div>
+
+@code {
+    private string _email = "";
+    private bool _procesando;
+    private bool _enviado;
+
+    private async Task SolicitarAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_email)) return;
+        _procesando = true;
+        try
+        {
+            await Sender.Send(new SolicitarRecuperacionContrasenaCommand(_email.Trim()));
+        }
+        catch
+        {
+            // Misma respuesta exista o no el correo: no se facilita la enumeración de usuarios.
+        }
+        _enviado = true;
+        _procesando = false;
+    }
+}

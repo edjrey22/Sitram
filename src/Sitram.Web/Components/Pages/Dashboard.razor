@@ -93,6 +93,9 @@ else
     private List<Sitram.Application.Tramites.Queries.ListarTramitesCiudadano.TramiteResumenDto> _borradores = new();
     private List<Sitram.Application.Tramites.Queries.ListarTramitesCiudadano.TramiteResumenDto> _finalizados = new();
 
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthState { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         var ciudadanoId = CurrentUser.UsuarioId!.Value;
@@ -102,6 +105,12 @@ else
         {
             NombreCompleto = $"{perfil.Nombres} {perfil.Apellidos}";
             Iniciales = $"{perfil.Nombres[0]}{perfil.Apellidos[0]}".ToUpperInvariant();
+        }
+        else if (AuthState is not null)
+        {
+            // Funcionario sin perfil de ciudadano: se saluda por su nombre de usuario.
+            NombreCompleto = (await AuthState).User.Identity?.Name ?? "Funcionario";
+            Iniciales = NombreCompleto.Length > 0 ? NombreCompleto[..1].ToUpperInvariant() : "F";
         }
 
         var pagina = await Sender.Send(new Sitram.Application.Tramites.Queries.ListarTramitesCiudadano.ListarTramitesCiudadanoQuery(ciudadanoId, 1, 50));

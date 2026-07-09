@@ -1,0 +1,112 @@
+@page "/administracion/tipos-tramite"
+@rendermode InteractiveServer
+@attribute [Authorize(Policy = "AdministracionGestionar")]
+@using Sitram.Application.TiposTramite.Commands.CrearTipoTramite
+@using Sitram.Application.TiposTramite.Queries.ObtenerCatalogoTramites
+@inject ISender Sender
+
+<PageTitle>Tipos de trámite — SITRAM</PageTitle>
+
+<h1>Tipos de trámite</h1>
+<p class="card-sub" style="margin-bottom:1.1rem">
+    El catálogo TUPA que ve el ciudadano al iniciar un trámite nuevo. Cada tipo creado aquí aparece de inmediato en "Nuevo trámite" (RF-010, RF-014).
+</p>
+
+@if (_mensajeExito is not null)
+{
+    <div class="card" style="border-color:var(--brand);background:var(--brand-soft);color:var(--brand-deep);font-size:0.85rem">
+        @_mensajeExito
+    </div>
+}
+@if (_error is not null)
+{
+    <div class="alert alert-danger"><Icon Name="alert" Size="16" /><span>@_error</span></div>
+}
+
+<div class="card">
+    <label class="field-label" for="t-nombre">Nombre</label>
+    <input class="field no-icon" id="t-nombre" @bind="_nombre" />
+
+    <label class="field-label" for="t-desc">Descripción</label>
+    <input class="field no-icon" id="t-desc" @bind="_descripcion" />
+
+    <label class="field-label" for="t-area">Área responsable</label>
+    <input class="field no-icon" id="t-area" @bind="_areaResponsable" />
+
+    <label class="field-label" for="t-tasa">Tasa (S/, 0 si es gratuito)</label>
+    <input class="field no-icon" id="t-tasa" type="number" step="0.01" min="0" @bind="_tasa" />
+
+    <button class="btn btn-primary" style="margin-top:0.3rem" disabled="@_procesando" @onclick="CrearAsync">
+        Crear tipo de trámite
+    </button>
+</div>
+
+<div class="section-title">Catálogo activo</div>
+@if (_cargando)
+{
+    <p>Cargando…</p>
+}
+else if (_catalogo.Count == 0)
+{
+    <div class="card"><p class="card-sub" style="margin:0">Aún no hay tipos de trámite activos.</p></div>
+}
+else
+{
+    @foreach (var tipo in _catalogo)
+    {
+        <div class="card">
+            <div class="card-row">
+                <div class="txt">
+                    <p class="card-title">@tipo.Nombre</p>
+                    <p class="card-sub">@tipo.AreaResponsable · @tipo.Descripcion</p>
+                </div>
+                <span style="font-weight:800;font-size:0.9rem;color:var(--brand-deep);background:var(--brand-soft);padding:0.34rem 0.6rem;border-radius:var(--radius-sm);white-space:nowrap">
+                    @(tipo.Tasa == 0 ? "Gratuito" : $"S/ {tipo.Tasa:0.00}")
+                </span>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private string _nombre = "";
+    private string _descripcion = "";
+    private string _areaResponsable = "";
+    private decimal _tasa;
+    private bool _procesando;
+    private bool _cargando = true;
+    private string? _error;
+    private string? _mensajeExito;
+    private List<TipoTramiteResumenDto> _catalogo = new();
+
+    protected override async Task OnInitializedAsync() => await CargarCatalogoAsync();
+
+    private async Task CargarCatalogoAsync()
+    {
+        _catalogo = (await Sender.Send(new ObtenerCatalogoTramitesQuery())).ToList();
+        _cargando = false;
+    }
+
+    private async Task CrearAsync()
+    {
+        _error = null;
+        _mensajeExito = null;
+        _procesando = true;
+        try
+        {
+            await Sender.Send(new CrearTipoTramiteCommand(_nombre, _descripcion, _areaResponsable, _tasa));
+            _mensajeExito = $"Tipo de trámite '{_nombre}' creado y disponible en el catálogo.";
+            _nombre = _descripcion = _areaResponsable = "";
+            _tasa = 0;
+            await CargarCatalogoAsync();
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _procesando = false;
+        }
+    }
+}

@@ -11,6 +11,14 @@ using Sitram.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Carga explícita de User Secrets por su UserSecretsId: WebApplication.CreateBuilder solo los
+// añade automáticamente si detecta ASPNETCORE_ENVIRONMENT=Development, y algunos lanzadores
+// (p. ej. depurar desde Visual Studio) no siempre propagan esa variable al proceso. Forzarlo aquí
+// garantiza que la cadena real de Supabase y la 'Cifrado:Clave' se lean sin depender del entorno.
+// La variante por GUID es opcional por naturaleza (si el archivo de secrets no existe, la fuente
+// queda vacía), así que es inofensiva en producción, donde la config viene de variables de entorno.
+builder.Configuration.AddUserSecrets("4c348450-55fc-452e-ad26-252bf35f0747"); // UserSecretsId de Sitram.Web
+
 // Capas de la aplicación (regla de dependencia: Web -> Application/Infrastructure, ADR-0006)
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
@@ -87,6 +95,11 @@ app.MapPost("/auth/login", async (HttpContext http, IIdentityService identitySer
     var userName = form["userName"].ToString();
     var password = form["password"].ToString();
 
+    // Solo rutas locales ("/algo"): un returnUrl absoluto permitiría un open redirect hacia
+    // un sitio de phishing tras un login legítimo.
+    var returnUrl = form["returnUrl"].ToString();
+    var destino = returnUrl.StartsWith('/') && !returnUrl.StartsWith("//") ? returnUrl : "/";
+
     var resultado = await identityService.ValidarCredencialesAsync(userName, password);
     if (resultado.BloqueadoTemporalmente)
         return Results.Redirect("/login?error=" + Uri.EscapeDataString("La cuenta está bloqueada temporalmente por intentos fallidos."));
@@ -108,7 +121,7 @@ app.MapPost("/auth/login", async (HttpContext http, IIdentityService identitySer
     }
 
     await FirmarCookieAsync(http, identityService, resultado.UsuarioId, userName);
-    return Results.Redirect("/");
+    return Results.Redirect(destino);
 });
 
 app.MapPost("/auth/verificar-mfa", async (HttpContext http, IIdentityService identityService, Guid usuarioId) =>
