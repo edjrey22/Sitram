@@ -82,10 +82,11 @@ prácticas de **Extreme Programming (XP)** para asegurar la calidad del código.
 arquitectónico, la plataforma se estructuró bajo **Clean Architecture** y **Domain-Driven
 Design (DDD)**, con **C# 14 sobre .NET 10** en el backend, una interfaz de usuario en **Blazor**
 —con render interactivo en servidor, que mantiene la lógica y los datos personales fuera del
-navegador— y **SQL Server 2022** como base de
+navegador— y **PostgreSQL** (gestionado en Supabase) como base de
 datos relacional, incorporando controles de seguridad transversales: autenticación con JWT,
-autorización basada en roles (RBAC), cifrado en tránsito (TLS) y en reposo (TDE/Always
-Encrypted) y un registro de auditoría inmutable. La evaluación se diseñó sobre cuatro
+autorización basada en roles (RBAC), cifrado en tránsito (TLS), cifrado en reposo a nivel de
+proveedor y cifrado de columna a nivel de aplicación (AES-256) para datos personales
+sensibles, y un registro de auditoría inmutable. La evaluación se diseñó sobre cuatro
 variables: el proceso de desarrollo, el funcionamiento de los módulos críticos, el
 cumplimiento de los controles de **seguridad y protección de datos** conforme a la **Ley
 N.° 29733** y su reglamento (D.S. N.° 016-2024-JUS), y la usabilidad, esta última evaluada
@@ -113,9 +114,10 @@ analysis, design, and implementation phases, and with **Extreme Programming (XP)
 ensure code quality. Architecturally, the platform was structured using **Clean Architecture**
 and **Domain-Driven Design (DDD)**, with **C# 14 on .NET 10** in the backend, a **Blazor**
 front-end —using server-side interactive rendering, which keeps logic and personal data off the
-browser— and **SQL Server 2022** as the relational database, incorporating cross-cutting security controls: JWT
-authentication, role-based access control (RBAC), encryption in transit (TLS) and at rest
-(TDE/Always Encrypted), and an immutable audit log. The evaluation was designed around four
+browser— and **PostgreSQL** (managed on Supabase) as the relational database, incorporating cross-cutting security controls: JWT
+authentication, role-based access control (RBAC), encryption in transit (TLS), provider-level
+encryption at rest, and application-level column encryption (AES-256) for sensitive personal
+data, and an immutable audit log. The evaluation was designed around four
 variables: the development process, the operation of critical modules, compliance with
 **security and personal data protection** controls under **Law No. 29733** and its regulation
 (D.S. No. 016-2024-JUS), and usability, the latter assessed through the **System Usability

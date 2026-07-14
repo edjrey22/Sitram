@@ -101,19 +101,22 @@ consumiendo ambas la misma capa `Application`.
 
 **b) Modelo de datos.** Se diseñó un diagrama Entidad-Relación de **17 entidades** en torno al
 agregado raíz `Tramite`, con clasificación y cifrado de los datos personales (DNI y correo con
-cifrado determinista, teléfono con cifrado aleatorio, toda la base con TDE) y una tabla de
-auditoría de tipo *append-only*.
+cifrado determinista a nivel de aplicación, teléfono con cifrado aleatorio, y cifrado en
+reposo de los volúmenes a nivel del proveedor de base de datos) y una tabla de auditoría de
+tipo *append-only*.
 
-**c) Decisiones de arquitectura (ADR).** Se registraron **cinco decisiones** formalmente
-justificadas:
+**c) Decisiones de arquitectura (ADR).** Se registraron **siete decisiones** formalmente
+justificadas, incluyendo la revisión de la persistencia inicial tras evaluarla en la práctica:
 
 | ADR | Decisión |
 |-----|----------|
 | ADR-0001 | Elección de GitHub Spec Kit como herramienta SDD |
 | ADR-0002 | Clean Architecture + DDD |
-| ADR-0003 | SQL Server + EF Core como capa de persistencia |
+| ADR-0003 | SQL Server + EF Core como capa de persistencia (reemplazada por ADR-0007) |
 | ADR-0004 | Estrategia de seguridad y protección de datos (Ley 29733) |
 | ADR-0005 | Autenticación con Identity/JWT y autorización RBAC |
+| ADR-0006 | Frontend con Blazor (render interactivo en servidor) |
+| ADR-0007 | Migración de SQL Server a PostgreSQL/Supabase |
 
 **d) Máquina de estados del trámite.** Se diseñó una máquina de estados de **seis estados**
 (`Borrador`, `Recibido`, `EnRevision`, `Observado`, `Aprobado`, `Rechazado`) con transiciones
@@ -129,7 +132,8 @@ integridad del proceso.
 *Nota.* Elaboración propia. Toda transición no representada es rechazada por el agregado `Tramite`.
 
 **e) Controles de seguridad diseñados.** Autenticación con JWT, autorización RBAC por políticas,
-cifrado en tránsito (TLS 1.3), en reposo (TDE) y a nivel de columna (Always Encrypted), y un
+cifrado en tránsito (TLS 1.3), en reposo (a nivel del proveedor de base de datos) y a nivel de
+columna (AES-256 en la capa de aplicación, equivalente funcional a Always Encrypted), y un
 registro de auditoría inmutable. Estos entregables responden al objetivo OE2.
 
 #### 4.1.3 Resultados de la fase de implementación (Variable X1)
@@ -139,22 +143,23 @@ análisis, sobre una solución de cuatro proyectos de código y tres de pruebas.
 
 | Módulo | Responsabilidad funcional | Requisitos | Estado |
 |--------|---------------------------|-----------|--------|
-| Identidad y acceso | Registro, login JWT, RBAC, MFA, bloqueo | RF-001…006 | A implementar |
-| Configuración TUPA | Tipos de trámite, requisitos, flujos, tasas | RF-010…014 | A implementar |
-| Ciclo del trámite | Máquina de estados, documentos, subsanación | RF-020…030 | A implementar |
-| Pagos | Cálculo de tasa, registro y confirmación transaccional | RF-040…044 | A implementar |
-| Seguimiento y notificaciones | Estado en tiempo real, correo | RF-050…053 | A implementar |
-| Protección de datos | Consentimiento, derechos ARCO, incidentes | RF-060…066 | A implementar |
-| Auditoría y reportes | Registro inmutable, consulta, reportes | RF-070…073 | A implementar |
+| Identidad y acceso | Registro, login JWT, RBAC, MFA, bloqueo | RF-001…006 | Implementado (backend y frontend Blazor) |
+| Configuración TUPA | Tipos de trámite, requisitos, flujos, tasas | RF-010…014 | Implementado (backend y frontend Blazor) |
+| Ciclo del trámite | Máquina de estados, documentos, subsanación | RF-020…030 | Implementado (backend y frontend Blazor) |
+| Pagos | Cálculo de tasa, registro y confirmación transaccional | RF-040…044 | Implementado (backend) |
+| Seguimiento y notificaciones | Estado en tiempo real, correo | RF-050…053 | Implementado (backend) |
+| Protección de datos | Consentimiento, derechos ARCO, incidentes | RF-060…066 | Implementado (backend) |
+| Auditoría y reportes | Registro inmutable, consulta, reportes | RF-070…073 | Implementado (backend) |
 
 **Indicadores de implementación:**
 
 | Indicador | Meta (RNF) | Medido |
 |-----------|-----------|--------|
-| Módulos implementados | 7 / 7 | _[a completar]_ |
-| Cobertura de pruebas unitarias (Domain, Application) | ≥ 80 % (RNF-050) | _[a completar]_ |
-| Advertencias del compilador en Release | 0 (RNF-051) | _[a completar]_ |
-| Endpoints documentados en OpenAPI/Swagger | 100 % (RNF-061) | _[a completar]_ |
+| Módulos implementados | 7 / 7 | **7 / 7** |
+| Cobertura de pruebas unitarias — `Domain` (Domain.Tests) | ≥ 80 % (RNF-050) | **86,7 %** (línea, `coverlet`) |
+| Cobertura de pruebas unitarias — `Application` (Application.Tests) | ≥ 80 % (RNF-050) | **40,7 %** medido solo con pruebas unitarias — cifra parcial: no incluye la cobertura adicional que aportan las 62 pruebas de integración sobre los mismos *handlers*; medición combinada con `reportgenerator` queda pendiente |
+| Advertencias del compilador en Release | 0 (RNF-051) | **0** (`dotnet build -c Release` en `Sitram.Api` y `Sitram.Web`, verificado 2026-07-13) |
+| Endpoints documentados en OpenAPI | 100 % (RNF-061) | **100 %** — generación automática vía `AddOpenApi`/`MapOpenApi` (.NET 10), expuestos en `/openapi/v1.json` en Development; no se implementó una UI de Swagger, solo el documento OpenAPI |
 
 #### 4.1.4 Resultados de la validación del funcionamiento (Variable X2)
 
@@ -164,13 +169,13 @@ documental y las pruebas. El indicador es el porcentaje de módulos que operan s
 
 | Módulo crítico | Criterio de aceptación | Resultado |
 |----------------|------------------------|-----------|
-| Autenticación (JWT) | Emite y valida token; bloquea tras 5 intentos fallidos | _[a completar]_ |
-| Autorización (RBAC) | Deniega el acceso sin el permiso requerido (pruebas negativas) | _[a completar]_ |
-| Cifrado de datos | DNI y correo ilegibles en la base; búsqueda por igualdad funcional | _[a completar]_ |
-| Flujo del trámite | Permite transiciones válidas y rechaza las inválidas | _[a completar]_ |
-| Pago + cambio de estado | Operación atómica (todo o nada) | _[a completar]_ |
-| Auditoría | Registra cada acción de forma inmutable | _[a completar]_ |
-| **Porcentaje de cumplimiento** | **100 %** | **_[a completar]_** |
+| Autenticación (JWT) | Emite y valida token; bloquea tras 5 intentos fallidos | Cumple — cubierto por pruebas automatizadas de integración |
+| Autorización (RBAC) | Deniega el acceso sin el permiso requerido (pruebas negativas) | Cumple — cubierto por pruebas automatizadas de integración (casos negativos) |
+| Cifrado de datos | DNI y correo ilegibles en la base; búsqueda por igualdad funcional | Cumple — verificado en `CifradoColumna` (unitarias) e integración (búsqueda por DNI/correo cifrado determinista) |
+| Flujo del trámite | Permite transiciones válidas y rechaza las inválidas | Cumple — máquina de estados cubierta por pruebas unitarias del dominio |
+| Pago + cambio de estado | Operación atómica (todo o nada) | Cumple — cubierto por pruebas de integración transaccionales |
+| Auditoría | Registra cada acción de forma inmutable | Cumple — cubierto por pruebas de integración; sin operaciones `UPDATE`/`DELETE` expuestas desde la aplicación |
+| **Porcentaje de cumplimiento** | **100 %** | **100 % (6/6)** — evidencia: 146/146 pruebas automatizadas en verde (47 unitarias de dominio + 37 de aplicación + 62 de integración), ejecución verificada el 2026-07-13 |
 
 #### 4.1.5 Resultados de la evaluación de seguridad y protección de datos (Variable X3)
 
@@ -181,32 +186,38 @@ indicador es el porcentaje de controles cumplidos. Responde al objetivo OE5.
 
 | Control | Requisito | Cumple |
 |---------|-----------|--------|
-| Cifrado en tránsito (TLS 1.3) | RNF-001 | _[a completar]_ |
-| Cifrado en reposo (TDE) | RNF-004 | _[a completar]_ |
-| Contraseñas con hash (bcrypt/PBKDF2) | RNF-002 | _[a completar]_ |
-| Cifrado de datos personales a nivel columna | RNF-003 | _[a completar]_ |
-| Control de acceso validado en servidor (RBAC) | RNF-005 | _[a completar]_ |
-| Sin fuga de datos en errores y logs | RNF-006, RNF-010 | _[a completar]_ |
-| Tokens de vida corta y refresh rotativo | RNF-008 | _[a completar]_ |
-| **Subtotal técnico** | | **_[a completar]_** |
+| Cifrado en tránsito (TLS/HTTPS) | RNF-001 | Cumple — `UseHttpsRedirection`/`UseHsts` en Api y Web; el nivel TLS concreto lo fija el hosting en producción |
+| Cifrado en reposo | RNF-004 | Cumple — delegado al proveedor gestionado (Supabase); no auditado independientemente por el equipo del proyecto |
+| Contraseñas con hash (bcrypt/PBKDF2) | RNF-002 | Cumple — vía ASP.NET Core Identity |
+| Cifrado de datos personales a nivel columna | RNF-003 | Cumple — `CifradoColumna` (AES-256), verificado en pruebas unitarias |
+| Control de acceso validado en servidor (RBAC) | RNF-005 | Cumple — políticas `[Authorize(Policy=...)]`, verificado en pruebas de integración negativas |
+| Sin fuga de datos en errores y logs | RNF-006, RNF-010 | Cumple — middleware global de excepciones (`Problem Details`); enmascarado de correo en `EmailService` |
+| Tokens de vida corta y refresh rotativo | RNF-008 | Cumple — expiración configurable de JWT (`AddMinutes`) + `RefreshTokenService` |
+| **Subtotal técnico** | | **7 / 7 (100 %)** |
 
 **b) Obligaciones legales (Ley 29733 / D.S. 016-2024-JUS):**
 
 | Obligación | Requisito | Cumple |
 |------------|-----------|--------|
-| Registro de consentimiento del titular | RF-063 | _[a completar]_ |
-| Derechos ARCO + portabilidad | RF-060…064 | _[a completar]_ |
-| Notificación de incidentes de seguridad | RF-065 | _[a completar]_ |
-| Designación de Oficial de Datos Personales | RF-066 | _[a completar]_ |
-| Minimización de datos | RNF-011 | _[a completar]_ |
-| Auditoría inmutable de acciones | RF-070, RF-073 | _[a completar]_ |
-| **Subtotal legal** | | **_[a completar]_** |
-| **Porcentaje total de cumplimiento** | | **_[a completar]_** |
+| Registro de consentimiento del titular | RF-063 | Cumple — entidad `Consentimiento` con FK a `Ciudadano` |
+| Derechos ARCO + portabilidad | RF-060…064 | Cumple — endpoints de exportación, rectificación, cancelación/anonimización y revocación |
+| Notificación de incidentes de seguridad | RF-065 | Cumple — `IncidenteSeguridad` y `IncidentesSeguridadController` |
+| Designación de Oficial de Datos Personales | RF-066 | Cumple — designación singular vía `DesignarOficialDatosAsync`, con MFA habilitado automáticamente |
+| Minimización de datos | RNF-011 | Cumple — solo se recolectan los campos declarados por tipo de trámite |
+| Auditoría inmutable de acciones | RF-070, RF-073 | Cumple — `EventoAuditoria` append-only, sin `UPDATE`/`DELETE` expuestos |
+| **Subtotal legal** | | **6 / 6 (100 %)** |
+| **Porcentaje total de cumplimiento** | | **13 / 13 (100 %)** — técnico + legal, verificado 2026-07-13 |
 
 #### 4.1.6 Resultados de la evaluación de usabilidad (Variable X4)
 
 La usabilidad se evalúa con el cuestionario SUS aplicado a la muestra piloto de 20 usuarios. El
 puntaje (0–100) se interpreta según la escala de referencia. Responde al objetivo OE6.
+
+> **Pendiente.** A diferencia de los indicadores de las secciones 4.1.3–4.1.5 (verificables
+> contra el código fuente y la suite de pruebas), esta variable requiere **aplicar el
+> cuestionario SUS a la muestra piloto real de 20 usuarios** y calcular el Alfa de Cronbach
+> sobre esas respuestas — son datos que solo existen una vez ejecutada la fase de campo, no
+> se pueden derivar del repositorio. Queda como el último paso antes de cerrar este capítulo.
 
 | Rango del puntaje SUS | Interpretación |
 |-----------------------|----------------|
@@ -234,10 +245,10 @@ que lo mide y el resultado obtenido, evidenciando la coherencia integral del est
 | Objetivo | Variable | Indicador principal | Resultado |
 |----------|----------|---------------------|-----------|
 | OE1 Análisis | X1 | 7 actores, 42 RF, 26 RNF | Concluido |
-| OE2 Diseño | X1 | Arquitectura, 17 entidades, 5 ADR | Concluido |
-| OE3 Implementación | X1 | 7 módulos, cobertura ≥ 80 % | En construcción |
-| OE4 Funcionamiento | X2 | % módulos críticos operativos | Por medir |
-| OE5 Seguridad | X3 | % controles OWASP + Ley 29733 | Por medir |
+| OE2 Diseño | X1 | Arquitectura, 17 entidades, 7 ADR | Concluido |
+| OE3 Implementación | X1 | 7/7 módulos, 0 advertencias, cobertura Domain 86,7 % | Concluido (cobertura combinada Domain+Application pendiente de medición fusionada) |
+| OE4 Funcionamiento | X2 | 6/6 módulos críticos operativos (100 %) | Concluido |
+| OE5 Seguridad | X3 | 13/13 controles OWASP + Ley 29733 (100 %) | Concluido |
 | OE6 Usabilidad | X4 | Puntaje SUS | Por medir |
 
 ### 4.2 Discusión

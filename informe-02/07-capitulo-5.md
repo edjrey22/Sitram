@@ -26,27 +26,32 @@ particular en el ámbito de referencia de la Municipalidad Distrital de San Juan
 
 2. **(OE2 – Diseño)** La fase de diseño produjo una arquitectura sólida basada en **Clean
    Architecture y Domain-Driven Design**, un modelo de datos de **17 entidades** con cifrado de
-   los datos personales, **cinco decisiones de arquitectura (ADR)** formalmente justificadas, una
-   máquina de estados de seis estados y un conjunto de controles de seguridad transversales. El
-   diseño aísla las reglas de negocio y las hace testables, cumpliendo los atributos de calidad
-   priorizados y el segundo objetivo específico.
+   los datos personales, **siete decisiones de arquitectura (ADR)** formalmente justificadas
+   —incluyendo la revisión de la persistencia inicial (SQL Server) hacia PostgreSQL/Supabase
+   una vez evaluada en la práctica—, una máquina de estados de seis estados y un conjunto de
+   controles de seguridad transversales. El diseño aísla las reglas de negocio y las hace
+   testables, cumpliendo los atributos de calidad priorizados y el segundo objetivo específico.
 
-3. **(OE3 – Implementación)** Se definió la estructura de implementación en **siete módulos**
-   funcionales y una solución de cuatro proyectos de código y tres de pruebas, estableciendo como
-   metas una cobertura de pruebas **≥ 80 %** y la ausencia de advertencias del compilador, en
-   línea con las convenciones y el flujo de trabajo definidos, dando respuesta al tercer objetivo.
+3. **(OE3 – Implementación)** Se implementaron los **siete módulos** funcionales sobre una
+   solución de cuatro proyectos de código y tres de pruebas, con **0 advertencias** del
+   compilador en Release y una cobertura de pruebas unitarias del **86,7 %** en la capa
+   `Domain`; la cobertura de la capa `Application` medida solo con pruebas unitarias (40,7 %)
+   es una cifra parcial, pues no incorpora la cobertura adicional de las 62 pruebas de
+   integración sobre los mismos casos de uso — una medición combinada queda como trabajo
+   pendiente. Con esta salvedad, la implementación cumple el tercer objetivo específico.
 
-4. **(OE4 – Funcionamiento)** Se estableció el instrumento y los criterios de aceptación para
-   validar los módulos críticos (autenticación, autorización, cifrado, flujo del trámite, pagos
-   y auditoría), con el objetivo de un cumplimiento operativo del **100 %**, atendiendo el cuarto
-   objetivo específico.
+4. **(OE4 – Funcionamiento)** Los seis módulos críticos (autenticación, autorización, cifrado,
+   flujo del trámite, pagos y auditoría) se validaron mediante **146 pruebas automatizadas en
+   verde** (47 unitarias de dominio, 37 de aplicación y 62 de integración), alcanzando el
+   **100 %** de cumplimiento operativo previsto y atendiendo el cuarto objetivo específico.
 
-5. **(OE5 – Seguridad y protección de datos)** Se diseñó un checklist de cumplimiento anclado a
-   OWASP ASVS y a la **Ley N.° 29733** y su reglamento (D.S. N.° 016-2024-JUS), incorporando
-   cifrado, control de acceso RBAC, derechos ARCO, portabilidad, notificación de incidentes y la
-   figura del Oficial de Datos Personales. Esto posiciona a la plataforma en cumplimiento con la
-   normativa vigente —un diferenciador respecto de los antecedentes revisados— y responde al
-   quinto objetivo específico.
+5. **(OE5 – Seguridad y protección de datos)** Se implementó y verificó un checklist de
+   cumplimiento anclado a OWASP y a la **Ley N.° 29733** y su reglamento (D.S. N.° 016-2024-JUS),
+   alcanzando el **100 %** (13/13 controles) entre cifrado, control de acceso RBAC, derechos
+   ARCO, portabilidad, notificación de incidentes y la figura del Oficial de Datos Personales.
+   Esto posiciona a la plataforma en cumplimiento con la normativa vigente —un diferenciador
+   respecto de los antecedentes revisados— y responde al quinto objetivo específico. Queda
+   pendiente, como recomendación, la validación por una auditoría externa independiente.
 
 6. **(OE6 – Usabilidad)** Se definió la evaluación de usabilidad mediante la escala **SUS** sobre
    una muestra piloto, con instrumentos **validados por juicio de expertos** (Coeficiente V de
@@ -62,9 +67,10 @@ metodológico del proyecto.
 
 ### 5.2 Recomendaciones
 
-1. **Completar la fase de construcción y medición.** Ejecutar la implementación de los siete
-   módulos y aplicar los instrumentos validados para consignar los resultados reales de
-   funcionamiento, seguridad y usabilidad en las tablas del Capítulo IV.
+1. **Completar la medición de usabilidad.** Aplicar el cuestionario SUS validado a la muestra
+   piloto real de usuarios y calcular el Alfa de Cronbach, para consignar los resultados de la
+   variable X4 (Usabilidad) en el Capítulo IV — el único indicador aún pendiente de medición
+   entre los seis objetivos específicos.
 
 2. **Ampliar la muestra de evaluación.** En una etapa posterior, incrementar el tamaño y la
    representatividad de la muestra de usuarios, con el fin de obtener resultados de usabilidad

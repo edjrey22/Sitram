@@ -274,8 +274,8 @@ protección de datos personales.
 
 #### 1.8.1 Viabilidad técnica
 
-El proyecto es técnicamente viable. Las tecnologías seleccionadas (.NET 10, C# 14, SQL Server
-2022, Entity Framework Core 10) son maduras, cuentan con amplia documentación y soporte, y son
+El proyecto es técnicamente viable. Las tecnologías seleccionadas (.NET 10, C# 14, PostgreSQL,
+Entity Framework Core 10) son maduras, cuentan con amplia documentación y soporte, y son
 adecuadas para los requisitos de seguridad y rendimiento planteados. El conocimiento requerido
 está al alcance del investigador y las herramientas de desarrollo son de libre acceso.
 

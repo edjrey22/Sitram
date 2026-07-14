@@ -392,9 +392,10 @@ claves e índices, se detalla en la documentación de ingeniería del proyecto (
 
 ### 7.3 Registros de Decisiones de Arquitectura (ADR)
 
-Se presentan los cinco ADR que justifican la metodología SDD, la Clean Architecture, la elección
-de SQL Server con EF Core, la estrategia de seguridad conforme a la Ley 29733 y el modelo de
-autenticación y autorización.
+Se presentan los siete ADR que justifican la metodología SDD, la Clean Architecture, la
+elección inicial de EF Core con SQL Server y su posterior migración a PostgreSQL/Supabase, la
+estrategia de seguridad conforme a la Ley 29733, el modelo de autenticación y autorización, y
+la elección del frontend con Blazor.
 
 ### 7.4 Prototipos de interfaz
 

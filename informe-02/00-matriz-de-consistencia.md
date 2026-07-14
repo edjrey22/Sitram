@@ -58,7 +58,7 @@ enfoque en seguridad y protección de datos personales, 2026.
 | **Técnicas** | Análisis documental, observación, encuesta |
 | **Instrumentos** | Ficha de análisis documental, checklist de seguridad (OWASP/Ley 29733), cuestionario SUS |
 | **Validación de instrumentos** | Validez de contenido por **juicio de expertos** (V de Aiken ≥ 0.80) y confiabilidad por **Alfa de Cronbach** (≥ 0.70). Ver [validación de instrumentos](00b-validacion-instrumentos.md) |
-| **Herramientas** | .NET 10, C# 14, Blazor, SQL Server 2022, EF Core 10, xUnit, Serilog |
+| **Herramientas** | .NET 10, C# 14, Blazor, PostgreSQL (Supabase), EF Core 10, xUnit, Serilog |
 
 ---
 

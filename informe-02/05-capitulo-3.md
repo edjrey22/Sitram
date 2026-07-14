@@ -162,7 +162,7 @@ Se adjuntan como anexos las constancias de validación firmadas por los expertos
 
 #### 3.6.4 Herramientas para el tratamiento de datos e información
 
-- **Desarrollo:** Visual Studio / Visual Studio Code, .NET 10, C# 14, SQL Server 2022, Entity
+- **Desarrollo:** Visual Studio Code, .NET 10, C# 14, PostgreSQL (Supabase), Entity
   Framework Core 10 y el sistema de control de versiones Git.
 - **Pruebas:** xUnit (framework de pruebas), Moq (simulación de dependencias), FluentAssertions
   (aserciones) y herramientas de reporte de cobertura.

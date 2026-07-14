@@ -284,13 +284,26 @@ rendimiento. Ofrece un modelo de *middleware* (componentes encadenados que proce
 petición HTTP), inyección de dependencias integrada, y facilidades para exponer APIs REST
 documentadas mediante **OpenAPI/Swagger**.
 
-##### 2.2.7.3 SQL Server
+##### 2.2.7.3 PostgreSQL y persistencia gestionada (Supabase)
 
-**SQL Server 2022** es un sistema gestor de bases de datos relacional (SGBDR) de Microsoft que
+**PostgreSQL** es un sistema gestor de bases de datos relacional (SGBDR) de código abierto que
 garantiza las propiedades **ACID** (atomicidad, consistencia, aislamiento y durabilidad) de las
-transacciones. Ofrece capacidades avanzadas de seguridad como el **cifrado transparente de
-datos** (TDE) para el cifrado en reposo y **Always Encrypted** para el cifrado a nivel de
-columna de datos sensibles.
+transacciones, con soporte maduro de tipos avanzados, índices y control de concurrencia
+multiversión (MVCC). El proyecto lo consume a través de **Supabase**, una plataforma que
+gestiona PostgreSQL como servicio (aprovisionamiento, respaldos y cifrado de los volúmenes de
+almacenamiento en reposo a nivel de infraestructura), lo que evita mantener una instancia de
+base de datos propia por entorno de desarrollo.
+
+El diseño inicial del proyecto evaluó **SQL Server 2022** por su integración nativa con el
+stack .NET y por ofrecer *Transparent Data Encryption* (TDE) y *Always Encrypted* como
+capacidades de cifrado nativas del motor. Durante la implementación se determinó que
+*Always Encrypted* real requiere un almacén de claves externo (Azure Key Vault o un HSM) no
+disponible en un entorno académico sin presupuesto de infraestructura, por lo que el cifrado
+de columna se implementó como una capa de aplicación (AES-256, ver §2.2.8.4) desde el inicio.
+Al no depender ya de la capacidad diferencial de SQL Server, se migró a PostgreSQL/Supabase
+para eliminar la dependencia de una instancia local de base de datos y facilitar el trabajo
+desde distintos entornos de desarrollo. Esta decisión y su justificación completa quedan
+registradas como una decisión de arquitectura (ADR) del proyecto.
 
 ##### 2.2.7.4 Entity Framework Core
 
@@ -346,8 +359,13 @@ quienes poseen la clave adecuada. Se distinguen: el **cifrado simétrico** (una 
 y descifra, p. ej. AES), el **cifrado asimétrico** (par de claves pública y privada) y las
 **funciones de hash** (transformación unidireccional, usada para almacenar contraseñas mediante
 algoritmos como bcrypt o PBKDF2). En tránsito, los datos se protegen con **TLS** (*Transport
-Layer Security*), que cifra la comunicación entre cliente y servidor (HTTPS). En reposo, se
-emplean TDE y el cifrado a nivel de columna.
+Layer Security*), que cifra la comunicación entre cliente y servidor (HTTPS). En reposo, el
+proveedor de base de datos cifra los volúmenes de almacenamiento, y los campos personales
+sensibles (DNI, teléfono, correo) reciben además un **cifrado a nivel de columna con AES-256
+en la capa de aplicación**, equivalente funcional a *Always Encrypted*: cifrado
+**determinista** (mismo texto plano → mismo cifrado, permite búsqueda por igualdad) para
+columnas que requieren consulta exacta, y cifrado **aleatorio** (IV distinto en cada
+operación) para las que no la requieren.
 
 ##### 2.2.8.5 OWASP
 
@@ -428,9 +446,9 @@ rendimiento, mantenibilidad y las capacidades de cumplimiento normativo del proy
 
 | Necesidad | Alternativas evaluadas | Elección y justificación |
 |-----------|------------------------|--------------------------|
-| Lenguaje / plataforma | Java/Spring, Node.js, Python/Django | **C# 14 / .NET 10 (LTS)**: robustez, rendimiento, tipado fuerte, soporte prolongado e integración nativa con seguridad y SQL Server |
+| Lenguaje / plataforma | Java/Spring, Node.js, Python/Django | **C# 14 / .NET 10 (LTS)**: robustez, rendimiento, tipado fuerte, soporte prolongado e integración nativa con seguridad y con el ORM elegido |
 | Interfaz de usuario | React, Angular (SPA con token en el navegador) | **Blazor (render en servidor)**: mantiene lógica y datos personales fuera del navegador, sin token en el cliente y con un solo lenguaje (C#) |
-| Base de datos | PostgreSQL, MySQL, MongoDB | **SQL Server 2022**: modelo relacional ACID y capacidades de cifrado (TDE, Always Encrypted) que apoyan el cumplimiento de la Ley 29733 |
+| Base de datos | SQL Server, MySQL, MongoDB | **PostgreSQL gestionado (Supabase)**: modelo relacional ACID, cifrado de volúmenes en reposo a nivel de proveedor y sin licenciamiento ni infraestructura propia que mantener; el cifrado de datos personales sensibles se implementa en la capa de aplicación (AES-256, ver §2.2.8.4) independientemente del motor, lo que apoya el cumplimiento de la Ley 29733 |
 | ORM | Dapper, ADO.NET | **Entity Framework Core 10**: productividad, migraciones versionadas y abstracción del acceso a datos |
 | Arquitectura | 3 capas, CRUD, microservicios | **Clean Architecture + DDD**: criticidad de las reglas de negocio, testabilidad y auditoría |
 | Metodología | Cascada, solo Scrum | **SDD** (núcleo) + Scrum + XP: trazabilidad especificación→código, gestión ágil y calidad técnica |
