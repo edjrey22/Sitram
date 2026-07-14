@@ -58,3 +58,4 @@ MediatR · FluentValidation · Serilog · xUnit · Moq · FluentAssertions · Re
 **Spec-Driven Development (SDD)** como núcleo (GitHub Spec Kit: `/specify → /plan → /tasks →
 /implement`), complementado con **Scrum** y **XP**. Ver
 [docs/flujo-de-trabajo.md](docs/flujo-de-trabajo.md).
+# Sitram
