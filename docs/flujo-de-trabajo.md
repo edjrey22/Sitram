@@ -92,10 +92,10 @@ Pipeline (GitHub Actions) que se dispara en cada push y PR:
 
 | Entorno | Uso | Base de datos |
 |---------|-----|---------------|
-| `Development` | Máquina del desarrollador | SQL Server local / contenedor |
-| `Testing` | CI y pruebas de integración | BD efímera, se limpia con Respawn |
+| `Development` | Máquina del desarrollador | PostgreSQL (Supabase, compartido) |
+| `Testing` | CI y pruebas de integración | BD efímera por corrida (`sitram_test_<guid>`), se limpia con Respawn |
 | `Staging` | Validación previa (opcional) | Copia con datos anonimizados |
-| `Production` | Uso real | SQL Server con TDE + backups |
+| `Production` | Uso real | PostgreSQL (Supabase) con backups |
 
 **Nunca** se usan datos personales reales fuera de `Production`. Los entornos inferiores
 usan **datos sintéticos o anonimizados** (obligación de la Ley 29733).

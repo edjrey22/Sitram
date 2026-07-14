@@ -22,7 +22,7 @@ Proyecto del curso **Pruebas y Aseguramiento de la Calidad de Software** · UNSC
 src/
 ├── Sitram.Domain/          # Entidades, agregados, value objects, reglas (sin dependencias)
 ├── Sitram.Application/     # Casos de uso (CQRS/MediatR), puertos, validadores
-├── Sitram.Infrastructure/  # EF Core, SQL Server, Identity, servicios externos
+├── Sitram.Infrastructure/  # EF Core, PostgreSQL (Supabase), Identity, servicios externos
 └── Sitram.Api/             # Blazor + Web API: controllers, middlewares, DI
 tests/
 ├── Sitram.Domain.Tests/        # Unitarias del dominio
@@ -36,7 +36,8 @@ La **regla de dependencia** apunta siempre hacia el dominio. Detalle en
 ## Requisitos previos
 
 - **.NET SDK 10** (`dotnet --version` ≥ 10.0)
-- **SQL Server** (o LocalDB) para la persistencia — cadena en `src/Sitram.Api/appsettings.json`
+- **PostgreSQL** (Supabase en desarrollo/producción) para la persistencia — cadena de
+  conexión real en User Secrets (`ConnectionStrings:SitramDb`), nunca en `appsettings.json`
 
 ## Cómo compilar, probar y ejecutar
 
@@ -50,12 +51,11 @@ En desarrollo, la documentación OpenAPI se expone en `/openapi/v1.json`.
 
 ## Stack tecnológico
 
-C# 14 · .NET 10 (LTS) · Blazor · ASP.NET Core Web API · SQL Server 2022 · EF Core 10 ·
-MediatR · FluentValidation · Serilog · xUnit · Moq · FluentAssertions · Respawn.
+C# 14 · .NET 10 (LTS) · Blazor · ASP.NET Core Web API · PostgreSQL 17 (Supabase) · EF Core 10
+(Npgsql) · MediatR · FluentValidation · Serilog · xUnit · Moq · FluentAssertions · Respawn.
 
 ## Metodología
 
 **Spec-Driven Development (SDD)** como núcleo (GitHub Spec Kit: `/specify → /plan → /tasks →
 /implement`), complementado con **Scrum** y **XP**. Ver
 [docs/flujo-de-trabajo.md](docs/flujo-de-trabajo.md).
-# Sitram

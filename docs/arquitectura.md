@@ -23,7 +23,7 @@ conoce a la infraestructura.
         │  │  │  Agregados · Reglas · Eventos      │   │   │
         │  │  └───────────────────────────────────┘   │   │
         │  └─────────────────────────────────────────┘   │
-        │                Infrastructure                  │  ← EF Core · SQL Server · Serilog
+        │                Infrastructure                  │  ← EF Core · PostgreSQL (Supabase) · Serilog
         │   Repositorios · DbContext · Servicios ext.    │
         └───────────────────────────────────────────────┘
              Las flechas de dependencia apuntan hacia el Domain
@@ -32,7 +32,9 @@ conoce a la infraestructura.
 ### ¿Por qué Clean Architecture?
 
 - **Testabilidad**: el dominio y los casos de uso se prueban sin base de datos ni framework.
-- **Independencia tecnológica**: cambiar SQL Server por otro motor solo afecta a Infrastructure.
+- **Independencia tecnológica**: cambiar de motor de base de datos solo afecta a
+  Infrastructure — así se migró de SQL Server a PostgreSQL sin tocar Domain/Application
+  (ver [ADR-0007](decisiones/ADR-0007-migracion-postgresql-supabase.md)).
 - **Protección del dominio**: las reglas municipales (estados de un trámite, validaciones)
   viven aisladas y no se contaminan con detalles de EF Core o HTTP.
 
@@ -80,7 +82,7 @@ Ciudadano ──HTTP POST /tramites──► TramitesController
                            ITramiteRepository.AddAsync()
                                         │
                                         ▼
-                                 SQL Server
+                            PostgreSQL (Supabase)
 ```
 
 - **Commands**: `IniciarTramiteCommand`, `AprobarTramiteCommand`, `RechazarTramiteCommand`.
@@ -149,12 +151,15 @@ Las transiciones inválidas lanzan una excepción de dominio (`TransicionInvalid
         │  └──────────────────────────────────────────┘  │
         └───────┬───────────────────────────┬────────────┘
                 ▼                            ▼
-     ┌────────────────────┐     ┌───────────────────────────┐
-     │   SQL Server 2022  │     │  Servicios externos        │
-     │  - Datos cifrados  │     │  - Pasarela de pagos       │
-     │    (AES-256)       │     │  - Notificaciones (correo) │
-     │  - Auditoría (TDE) │     └───────────────────────────┘
-     └────────────────────┘
+     ┌───────────────────────┐  ┌───────────────────────────┐
+     │  PostgreSQL (Supabase)│  │  Servicios externos        │
+     │  - Datos cifrados     │  │  - Pasarela de pagos       │
+     │    a nivel de columna │  │  - Notificaciones (correo) │
+     │    (AES-256, app)     │  └───────────────────────────┘
+     │  - Cifrado en reposo  │
+     │    del proveedor      │
+     │  - Auditoría inmutable│
+     └───────────────────────┘
 ```
 
 Los detalles de seguridad y protección de datos se desarrollan en
@@ -167,10 +172,11 @@ Los detalles de seguridad y protección de datos se desarrollan en
 |---|----------|--------|
 | [0001](decisiones/ADR-0001-eleccion-metodologia-sdd.md) | GitHub Spec Kit como herramienta SDD | Aceptada |
 | [0002](decisiones/ADR-0002-clean-architecture.md) | Clean Architecture + DDD | Aceptada |
-| [0003](decisiones/ADR-0003-sql-server-ef-core.md) | SQL Server + EF Core como persistencia | Aceptada |
+| [0003](decisiones/ADR-0003-sql-server-ef-core.md) | SQL Server + EF Core como persistencia | Reemplazada por 0007 |
 | [0004](decisiones/ADR-0004-seguridad-proteccion-datos.md) | Estrategia de seguridad y Ley 29733 | Aceptada |
 | [0005](decisiones/ADR-0005-autenticacion-autorizacion.md) | Identity + JWT + RBAC | Aceptada |
 | [0006](decisiones/ADR-0006-frontend-blazor.md) | Frontend con Blazor (render interactivo en servidor) | Aceptada |
+| [0007](decisiones/ADR-0007-migracion-postgresql-supabase.md) | Migración de SQL Server a PostgreSQL/Supabase | Aceptada |
 
 ## 7. Atributos de calidad priorizados
 

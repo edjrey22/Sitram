@@ -32,8 +32,12 @@ Se establece una estrategia de **defensa en profundidad** con los siguientes con
 
 ### 1. Cifrado
 - **En tránsito**: HTTPS obligatorio con **TLS 1.3**; redirección forzada y HSTS.
-- **En reposo**: **TDE** para toda la base de datos.
-- **A nivel columna**: **Always Encrypted** para campos sensibles (DNI, teléfono, correo).
+- **En reposo**: cifrado de los volúmenes de almacenamiento a nivel de proveedor (Supabase,
+  desde la migración documentada en [ADR-0007](ADR-0007-migracion-postgresql-supabase.md)).
+- **A nivel columna**: cifrado **AES-256 a nivel de aplicación** (`CifradoColumna`) para
+  campos sensibles (DNI, teléfono, correo) — funcionalmente equivalente a *Always
+  Encrypted*, adoptado porque Always Encrypted real requiere un almacén de claves externo
+  (Azure Key Vault/HSM) inexistente en el entorno académico (detalle en ADR-0007).
 - **Contraseñas**: nunca en texto plano; *hashing* con **bcrypt/PBKDF2** (vía Identity).
 
 ### 2. Minimización y clasificación de datos
@@ -67,9 +71,10 @@ Se establece una estrategia de **defensa en profundidad** con los siguientes con
 - Reducción del impacto de una eventual brecha (datos cifrados e ilegibles).
 
 **Negativas / mitigaciones**
-- *Always Encrypted* limita consultas sobre columnas cifradas (no permite `LIKE`/rangos
-  sobre ellas). → Se cifran solo los campos que no requieren búsqueda; se usa cifrado
-  determinista donde se necesite igualdad exacta.
+- El cifrado determinista (usado para permitir búsqueda por igualdad en Dni/Correo) no
+  permite `LIKE`/rangos sobre esas columnas, igual que *Always Encrypted*. → Se cifran solo
+  los campos que no requieren búsqueda con cifrado aleatorio; se usa cifrado determinista
+  donde se necesite igualdad exacta.
 - Overhead de auditoría. → Escritura asíncrona y particionado de la tabla de auditoría.
 - Complejidad adicional. → Documentada y encapsulada en `Infrastructure`.
 

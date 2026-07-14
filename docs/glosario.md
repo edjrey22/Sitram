@@ -58,8 +58,9 @@
 | **RBAC** | *Role-Based Access Control*. Control de acceso basado en roles y permisos. |
 | **Mínimo privilegio** | Cada actor tiene solo los permisos imprescindibles para su función. |
 | **JWT** | *JSON Web Token*. Token firmado que transporta la identidad y permisos del usuario. |
-| **TDE** | *Transparent Data Encryption*. Cifrado en reposo de toda la base de datos. |
-| **Always Encrypted** | Cifrado a nivel de columna para datos sensibles en SQL Server. |
+| **TDE** | *Transparent Data Encryption*. Cifrado en reposo de toda la base de datos a nivel de motor (capacidad de SQL Server, evaluada en [ADR-0003](decisiones/ADR-0003-sql-server-ef-core.md); SITRAM usa en su lugar el cifrado de volúmenes del proveedor gestionado, ver [ADR-0007](decisiones/ADR-0007-migracion-postgresql-supabase.md)). |
+| **Always Encrypted** | Cifrado a nivel de columna para datos sensibles, nativo de SQL Server. SITRAM implementa el equivalente funcional a nivel de aplicación (`CifradoColumna`, AES-256) — ver ADR-0007. |
+| **Supabase** | Plataforma gestionada sobre PostgreSQL (base de datos, autenticación, almacenamiento) usada como motor de persistencia de SITRAM desde ADR-0007. |
 | **Auditoría** | Registro inmutable de quién hizo qué, cuándo y desde dónde. |
 | **Anonimización** | Transformación de datos personales para que dejen de identificar al titular (usada en el derecho al olvido). |
 | **OWASP** | Organización de referencia en seguridad de aplicaciones; su *Top 10* guía nuestros controles. |

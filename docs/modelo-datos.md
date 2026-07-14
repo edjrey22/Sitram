@@ -1,6 +1,7 @@
 # Modelo de datos — SITRAM
 
-> Diseño lógico y físico de la base de datos (SQL Server 2022 + EF Core 10). Consistente con
+> Diseño lógico y físico de la base de datos (PostgreSQL/Supabase + EF Core 10, ver
+> [ADR-0007](decisiones/ADR-0007-migracion-postgresql-supabase.md)). Consistente con
 > los agregados de [arquitectura.md](arquitectura.md), la clasificación de seguridad de
 > [ADR-0004](decisiones/ADR-0004-seguridad-proteccion-datos.md) y los
 > [requisitos](requisitos.md). Alimenta el Anexo "Diagrama Entidad-Relación (DER)" del informe.
@@ -176,12 +177,12 @@ Según la política de [ADR-0004](decisiones/ADR-0004-seguridad-proteccion-datos
 
 | Columna | Clasificación | Protección |
 |---------|---------------|-----------|
-| `CIUDADANO.Dni` | Personal | Always Encrypted **determinista** (permite búsqueda por igualdad) |
-| `CIUDADANO.Correo` | Personal | Always Encrypted **determinista** |
-| `CIUDADANO.Telefono` | Personal | Always Encrypted **aleatorio** |
-| `CIUDADANO.Direccion` | Personal | TDE (nivel BD) |
+| `CIUDADANO.Dni` | Personal | AES-256 app-level **determinista** (permite búsqueda por igualdad) |
+| `CIUDADANO.Correo` | Personal | AES-256 app-level **determinista** |
+| `CIUDADANO.Telefono` | Personal | AES-256 app-level **aleatorio** |
+| `CIUDADANO.Direccion` | Personal | Cifrado en reposo (nivel proveedor) |
 | `USUARIO.PasswordHash` | Secreto | Hash bcrypt/PBKDF2 (nunca cifrado reversible) |
-| Toda la base | — | **TDE** (cifrado en reposo) |
+| Toda la base | — | Cifrado en reposo de los volúmenes (Supabase) |
 | `EVENTO_AUDITORIA.DatosAntes/Despues` | Interno | JSON **sin PII** (datos personales enmascarados) |
 
 > Regla: no se cifran con cifrado aleatorio las columnas que requieren `LIKE`/orden; para
@@ -204,16 +205,18 @@ Según la política de [ADR-0004](decisiones/ADR-0004-seguridad-proteccion-datos
 
 ## 5. Reglas de integridad y diseño
 
-- **Claves**: `uniqueidentifier` (GUID) en agregados para evitar exponer correlativos y
-  facilitar generación distribuida; `int` en catálogos (roles, permisos, tipos).
-- **Concurrencia optimista**: columna `rowversion` en `TRAMITE` → evita doble aprobación
-  ([errores conocidos 1.1](errores-conocidos.md)).
+- **Claves**: `uuid` (GUID) en agregados para evitar exponer correlativos y facilitar
+  generación distribuida; `integer` en catálogos (roles, permisos, tipos).
+- **Concurrencia optimista**: columna de sistema `xmin` de Postgres en `TRAMITE` → evita
+  doble aprobación (antes `rowversion` de SQL Server, ver
+  [ADR-0007](decisiones/ADR-0007-migracion-postgresql-supabase.md) y
+  [errores conocidos 1.1](errores-conocidos.md)).
 - **Borrado lógico**: `TIPO_TRAMITE.Activo` y `CIUDADANO.EstaAnonimizado`; **nunca** se borran
   trámites (obligación de archivo municipal). El derecho al olvido **anonimiza**, no elimina el
   expediente (RF-062).
-- **Fechas en UTC** (`datetime2`, sufijo `Utc`) — [errores conocidos 2.4](errores-conocidos.md).
+- **Fechas en UTC** (`timestamp`, sufijo `Utc`) — [errores conocidos 2.4](errores-conocidos.md).
 - **Auditoría append-only**: sin `UPDATE`/`DELETE` desde la aplicación; se refuerza con
-  permisos del motor y, opcionalmente, tablas *temporal/ledger* de SQL Server (RF-073).
+  permisos del motor (RF-073).
 - **Transacción pago + estado**: `PAGO.Estado = Confirmado` y la transición del `TRAMITE`
   ocurren en la **misma transacción** (RNF-032).
 

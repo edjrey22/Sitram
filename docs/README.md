@@ -27,7 +27,7 @@ Software** y pone énfasis en dos ejes transversales —**Seguridad de la inform
 | Lenguaje / Runtime | C# 14 · .NET 10 (LTS) |
 | Frontend | Blazor Web App (.NET 10) · render interactivo en servidor (ver [ADR-0006](decisiones/ADR-0006-frontend-blazor.md)) |
 | API | ASP.NET Core Web API |
-| Persistencia | SQL Server 2022 · Entity Framework Core 10 |
+| Persistencia | PostgreSQL 17 (Supabase, gestionado) · Entity Framework Core 10 (Npgsql) — ver [ADR-0007](decisiones/ADR-0007-migracion-postgresql-supabase.md), reemplaza a [ADR-0003](decisiones/ADR-0003-sql-server-ef-core.md) |
 | Arquitectura | Clean Architecture + DDD táctico |
 | Seguridad | ASP.NET Core Identity · JWT · RBAC |
 | Validación | FluentValidation |
@@ -65,8 +65,9 @@ detalle de cómo se combinan las tres está en
 
 | Fase | Estado |
 |------|--------|
-| Documentación de ingeniería | 🟡 En progreso |
-| Estructura del proyecto .NET | ⚪ Pendiente |
-| Implementación | ⚪ Pendiente |
-| Pruebas | ⚪ Pendiente |
-| Informe formal | ⚪ Pendiente |
+| Documentación de ingeniería | 🟢 Completa (Must + Should), actualizada 2026-07-13 |
+| Estructura del proyecto .NET | 🟢 Completa (Clean Architecture, 4 proyectos de código + 3 de pruebas) |
+| Implementación (backend) | 🟢 Completa: Must-have + Should-have (única excepción documentada: Always Encrypted real, ver [ADR-0007](decisiones/ADR-0007-migracion-postgresql-supabase.md)) |
+| Implementación (frontend Blazor) | 🟢 Completa: registro, login, recuperación/confirmación de email, ciclo de vida del trámite, administración de trámites y funcionarios |
+| Pruebas | 🟢 146/146 en verde (47 Domain + 37 Application + 62 Integration) |
+| Informe formal | 🟡 En progreso — pendiente actualizar cifras y sección de persistencia tras la migración a PostgreSQL |

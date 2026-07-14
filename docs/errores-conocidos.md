@@ -1,8 +1,8 @@
 # Errores conocidos y soluciones — SITRAM
 
 > Catálogo de problemas frecuentes (bugs, trampas y anti-patrones) detectados o previstos en
-> el stack .NET + EF Core + SQL Server, con su causa y solución probada. Se actualiza cada
-> vez que se resuelve un incidente relevante.
+> el stack .NET + EF Core + PostgreSQL/Supabase, con su causa y solución probada. Se
+> actualiza cada vez que se resuelve un incidente relevante.
 
 ## Índice
 
@@ -73,12 +73,32 @@
   prohibido loguear cuerpos de petición con datos personales. Revisar en el checklist de PR.
   (Ver [ADR-0004](decisiones/ADR-0004-seguridad-proteccion-datos.md)).
 
-### 3.2 Búsqueda imposible sobre columnas *Always Encrypted*
+### 3.2 Búsqueda imposible sobre columnas cifradas a nivel de aplicación
 - **Síntoma**: la consulta por DNI cifrado con `LIKE` o rango falla o no devuelve resultados.
-- **Causa**: el cifrado **aleatorio** de Always Encrypted no permite comparaciones.
-- **Solución**: usar cifrado **determinista** en columnas que requieran igualdad exacta
-  (búsqueda por DNI); no cifrar columnas que necesiten `LIKE`/ordenación, o rediseñar la
-  búsqueda (índice hash separado). Decidir por campo según su clasificación de datos.
+- **Causa**: el cifrado **aleatorio** (`CifradoColumna.CifrarAleatorio`, IV aleatorio por
+  fila) no permite comparaciones ni siquiera de igualdad — el mismo texto plano produce
+  cifrados distintos cada vez. Es el mismo problema que tendría *Always Encrypted* aleatorio
+  en SQL Server (la alternativa original evaluada en
+  [ADR-0003](decisiones/ADR-0003-sql-server-ef-core.md)/[ADR-0007](decisiones/ADR-0007-migracion-postgresql-supabase.md)).
+- **Solución**: usar cifrado **determinista** (`CifrarDeterministico`, IV derivado por HMAC
+  del propio texto plano) en columnas que requieran igualdad exacta (búsqueda por DNI); no
+  cifrar con IV aleatorio columnas que necesiten `LIKE`/ordenación, o rediseñar la búsqueda
+  (índice hash separado). Decidir por campo según su clasificación de datos.
+
+### 3.6 Desajuste de `Cifrado:Clave` entre entornos deja registros ilegibles para siempre
+- **Síntoma**: `CryptographicException: Padding is invalid` al leer un registro específico;
+  en Blazor Server esto revienta el circuito SignalR y la página queda "congelada" hasta
+  recargar.
+- **Causa**: `CifradoColumna` es Singleton y deriva sus claves de `Cifrado:Clave` (User
+  Secrets) al arrancar. Si un registro se escribió con un proceso que tenía una clave
+  distinta a la actual (p. ej. tras cambiar de máquina/entorno sin migrar los User Secrets),
+  ese registro queda huérfano — no hay forma de recuperar el texto plano sin la clave
+  original.
+- **Solución**: `Descifrar` ahora valida la longitud mínima y envuelve la excepción con un
+  mensaje explícito que señala el desajuste de clave (`src/Sitram.Infrastructure/Persistence/Cifrado/CifradoColumna.cs`),
+  en vez de un `Padding is invalid` opaco. Si ocurre, verificar con un script standalone
+  contra la BD antes de asumir un bug de código; los registros afectados deben limpiarse
+  manualmente (no hay recuperación posible).
 
 ### 3.3 Autorización solo en el frontend
 - **Síntoma**: un usuario manipula la petición y ejecuta acciones sin permiso.

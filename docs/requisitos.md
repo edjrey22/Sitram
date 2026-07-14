@@ -117,8 +117,8 @@
 |----|-----------|------------------------|-----------|
 | RNF-001 | Toda comunicación debe usar **HTTPS/TLS 1.3**; HTTP se redirige a HTTPS. | Escaneo TLS; sin endpoints en HTTP. | M |
 | RNF-002 | Las contraseñas se almacenan con **hash bcrypt/PBKDF2**, nunca en texto plano. | Revisión de BD y código. | M |
-| RNF-003 | Los datos personales sensibles (DNI, teléfono, correo) se **cifran a nivel columna** (Always Encrypted). | Inspección de esquema. | M |
-| RNF-004 | La base de datos completa se cifra en reposo con **TDE**. | Configuración de SQL Server. | M |
+| RNF-003 | Los datos personales sensibles (DNI, teléfono, correo) se **cifran a nivel columna** con AES-256 a nivel de aplicación (equivalente funcional a Always Encrypted; ver [ADR-0007](decisiones/ADR-0007-migracion-postgresql-supabase.md)). | Inspección de esquema y de `CifradoColumna`. | M |
+| RNF-004 | La base de datos completa se cifra en reposo (cifrado de volúmenes gestionado por el proveedor, Supabase). | Configuración/documentación de Supabase. | M |
 | RNF-005 | El control de acceso se valida **en el servidor** en cada operación protegida (RBAC). | Pruebas de autorización negativas. | M |
 | RNF-006 | El sistema no debe exponer *stack traces* ni detalles internos al cliente. | Pruebas de error → Problem Details. | M |
 | RNF-007 | El sistema debe cumplir los controles aplicables del **OWASP Top 10 / ASVS nivel 2**. | Checklist OWASP + revisión. | S |
@@ -170,7 +170,7 @@
 | ID | Requisito | Métrica / Verificación | Prioridad |
 |----|-----------|------------------------|-----------|
 | RNF-060 | El backend corre sobre **.NET 10** en Windows y Linux (contenedores). | Build multiplataforma. | S |
-| RNF-061 | La API expone documentación **OpenAPI/Swagger**. | Endpoint `/swagger` disponible. | M |
+| RNF-061 | La API expone documentación **OpenAPI**. | Endpoint `/openapi/v1.json` disponible en Development. | M |
 
 ---
 

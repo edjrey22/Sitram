@@ -21,7 +21,8 @@ Cada ADR sigue la plantilla:
 |-----|--------|--------|
 | [0001](ADR-0001-eleccion-metodologia-sdd.md) | Elección de metodología y herramienta SDD | Aceptada |
 | [0002](ADR-0002-clean-architecture.md) | Clean Architecture + DDD | Aceptada |
-| [0003](ADR-0003-sql-server-ef-core.md) | SQL Server + EF Core como capa de persistencia | Aceptada |
+| [0003](ADR-0003-sql-server-ef-core.md) | SQL Server + EF Core como capa de persistencia | Reemplazada por 0007 |
 | [0004](ADR-0004-seguridad-proteccion-datos.md) | Estrategia de seguridad y protección de datos | Aceptada |
 | [0005](ADR-0005-autenticacion-autorizacion.md) | Autenticación con Identity/JWT y autorización RBAC | Aceptada |
 | [0006](ADR-0006-frontend-blazor.md) | Frontend con Blazor (Web App, render interactivo en servidor) | Aceptada |
+| [0007](ADR-0007-migracion-postgresql-supabase.md) | Migración de SQL Server a PostgreSQL/Supabase | Aceptada |

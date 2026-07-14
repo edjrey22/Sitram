@@ -1,8 +1,14 @@
 # ADR-0003: SQL Server + EF Core como capa de persistencia
 
-- **Estado**: Aceptada
+- **Estado**: Reemplazada por [ADR-0007](ADR-0007-migracion-postgresql-supabase.md) (2026-07-08)
 - **Fecha**: 2026-07-01
 - **Decisores**: Equipo de proyecto
+
+> **Nota (2026-07-08)**: esta decisión se mantiene documentada por su valor histórico (la
+> elección de EF Core como ORM y de un motor relacional ACID sigue vigente), pero el motor
+> concreto cambió de SQL Server a PostgreSQL/Supabase. Ver
+> [ADR-0007](ADR-0007-migracion-postgresql-supabase.md) para el contexto completo de la
+> migración.
 
 ## Contexto
 
