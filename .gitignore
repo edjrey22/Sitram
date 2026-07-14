@@ -26,6 +26,14 @@ secrets.json
 # ---- Node (generador del informe .docx) ----
 node_modules/
 
+# ---- Artefactos de build/test/publish ----
+TestResults/
+publish-*/
+
+# ---- Scripts y config locales de desarrollo (no forman parte del proyecto) ----
+testEnvironments.json
+DropDb.cs
+
 # ---- SO ----
 Thumbs.db
 .DS_Store

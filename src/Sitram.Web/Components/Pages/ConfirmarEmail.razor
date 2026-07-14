@@ -1,0 +1,140 @@
+@page "/confirmar-email"
+@layout Layout.MainLayout
+@rendermode InteractiveServer
+@using FluentValidation
+@using Sitram.Application.Auth.Commands.ConfirmarEmail
+@using Sitram.Application.Auth.Commands.RestablecerContrasena
+@using Sitram.Application.Common.Interfaces
+@inject ISender Sender
+@inject IIdentityService IdentityService
+@inject NavigationManager Navigation
+
+<PageTitle>Confirmar correo — SITRAM</PageTitle>
+
+<div class="auth-page">
+    <div class="auth-card">
+        <div style="text-align:center;margin-bottom:1.4rem">
+            <div style="width:58px;height:58px;border-radius:17px;background:var(--brand);color:var(--on-brand);display:flex;align-items:center;justify-content:center;margin:0 auto 0.9rem;box-shadow:0 6px 18px rgba(11,92,74,0.35)">
+                <Icon Name="shield" Size="27" />
+            </div>
+            <div style="font-weight:800;font-size:1.14rem;letter-spacing:-0.015em">Confirmar tu correo</div>
+        </div>
+
+        @if (_cargando)
+        {
+            <p style="text-align:center">Confirmando…</p>
+        }
+        else if (!_confirmado)
+        {
+            <div class="alert alert-danger">
+                <Icon Name="alert" Size="16" />
+                <span>El enlace de confirmación es inválido o ya expiró. Solicita uno nuevo iniciando sesión o registrándote de nuevo.</span>
+            </div>
+            <div class="card" style="text-align:center;font-size:0.78rem;color:var(--ink-soft);margin-top:0.8rem">
+                <a href="/login" style="color:var(--brand-deep);font-weight:700">Volver a iniciar sesión</a>
+            </div>
+        }
+        else
+        {
+            <div class="card" style="border-color:var(--brand);background:var(--brand-soft);color:var(--brand-deep);font-size:0.85rem;margin-bottom:1rem">
+                Correo confirmado. Ahora establece tu contraseña definitiva.
+            </div>
+
+            @if (_error is not null)
+            {
+                <div class="alert alert-danger"><Icon Name="alert" Size="16" /><span>@_error</span></div>
+            }
+
+            @if (_guardado)
+            {
+                <div class="card" style="text-align:center;font-size:0.85rem">
+                    Contraseña actualizada. <a href="/login" style="color:var(--brand-deep);font-weight:700">Inicia sesión</a>
+                </div>
+            }
+            else
+            {
+                <label class="field-label" for="ce-pass">Nueva contraseña</label>
+                <div class="field-wrap">
+                    <Icon Name="lock" Size="15" />
+                    <input class="field" id="ce-pass" type="password" autocomplete="new-password" @bind="_password" />
+                </div>
+
+                <label class="field-label" for="ce-pass2">Repite la contraseña</label>
+                <div class="field-wrap">
+                    <Icon Name="lock" Size="15" />
+                    <input class="field" id="ce-pass2" type="password" autocomplete="new-password" @bind="_confirmacion" />
+                </div>
+
+                <button class="btn btn-primary" disabled="@_procesando" @onclick="GuardarContrasenaAsync">
+                    @(_procesando ? "Guardando…" : "Guardar contraseña") <Icon Name="chev" Size="15" />
+                </button>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery(Name = "usuarioId")]
+    public Guid UsuarioId { get; set; }
+
+    [SupplyParameterFromQuery(Name = "token")]
+    public string? Token { get; set; }
+
+    private bool _cargando = true;
+    private bool _confirmado;
+    private string? _tokenReseteo;
+    private string _password = "";
+    private string _confirmacion = "";
+    private bool _procesando;
+    private bool _guardado;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (UsuarioId != Guid.Empty && !string.IsNullOrWhiteSpace(Token))
+        {
+            try
+            {
+                await Sender.Send(new ConfirmarEmailCommand(UsuarioId, Token));
+                _confirmado = true;
+                // Sin un segundo correo: se genera aquí mismo el token para fijar la contraseña.
+                _tokenReseteo = await IdentityService.GenerarTokenRecuperacionContrasenaAsync(UsuarioId);
+            }
+            catch (Exception)
+            {
+                _confirmado = false;
+            }
+        }
+        _cargando = false;
+    }
+
+    private async Task GuardarContrasenaAsync()
+    {
+        _error = null;
+
+        if (_password != _confirmacion)
+        {
+            _error = "Las contraseñas no coinciden.";
+            return;
+        }
+
+        _procesando = true;
+        try
+        {
+            await Sender.Send(new RestablecerContrasenaCommand(UsuarioId, _tokenReseteo!, _password));
+            _guardado = true;
+        }
+        catch (ValidationException ex)
+        {
+            _error = string.Join(" ", ex.Errors.Select(e => e.ErrorMessage).Distinct());
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _procesando = false;
+        }
+    }
+}

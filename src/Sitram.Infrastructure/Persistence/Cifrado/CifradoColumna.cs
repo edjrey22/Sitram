@@ -35,6 +35,9 @@ public sealed class CifradoColumna
 
     public string Descifrar(byte[] datos)
     {
+        if (datos == null || datos.Length < 16)
+            throw new FormatException("Los datos a descifrar no tienen la longitud mínima requerida.");
+
         var iv = datos[..16];
         var cifrado = datos[16..];
 
@@ -42,8 +45,19 @@ public sealed class CifradoColumna
         aes.Key = _claveCifrado;
         aes.IV = iv;
         using var descifrador = aes.CreateDecryptor();
-        var plano = descifrador.TransformFinalBlock(cifrado, 0, cifrado.Length);
-        return Encoding.UTF8.GetString(plano);
+
+        try
+        {
+            var plano = descifrador.TransformFinalBlock(cifrado, 0, cifrado.Length);
+            return Encoding.UTF8.GetString(plano);
+        }
+        catch (CryptographicException ex)
+        {
+            throw new InvalidOperationException(
+                "Error al descifrar los datos de la columna. Esto suele ocurrir si la base de datos contiene " +
+                "registros creados con una 'Cifrado:Clave' distinta a la actual. Asegúrate de vaciar/recrear la " +
+                "base de datos si la clave cambió (muy común en entornos de desarrollo/pruebas).", ex);
+        }
     }
 
     private byte[] Cifrar(string texto, byte[] iv)
