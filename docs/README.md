@@ -48,6 +48,7 @@ Software** y pone énfasis en dos ejes transversales —**Seguridad de la inform
 | [glosario.md](glosario.md) | Términos del dominio municipal y técnicos |
 | [flujo-de-trabajo.md](flujo-de-trabajo.md) | Git Flow, ramas, PRs, CI/CD, ciclo SDD |
 | [errores-conocidos.md](errores-conocidos.md) | Problemas frecuentes y soluciones probadas |
+| [presentacion.md](presentacion.md) | Guion de 15 hojas para la exposición oral (formato Marp/reveal-md) |
 
 ## 4. Metodología: Spec-Driven Development (SDD)
 
