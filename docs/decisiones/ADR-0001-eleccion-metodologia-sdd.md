@@ -50,3 +50,14 @@ Razones:
   [flujo de trabajo](../flujo-de-trabajo.md).
 - Herramienta joven: posibles cambios de API. → Se fija la versión en la documentación del
   entorno.
+
+## Nota de implementación (2026-07-16)
+
+En la práctica, no se generó un `spec.md`/`plan.md`/`tasks.md` separado por cada
+funcionalidad como archivo suelto versionado. El ciclo `/specify → /plan → /tasks →
+/implement` se siguió como disciplina de trabajo, pero su contenido se consolidó en la
+documentación de ingeniería única del proyecto para evitar duplicar información: los
+requisitos ([requisitos.md](../requisitos.md)) hacen de especificación global, la
+arquitectura y los ADR hacen de plan técnico, y la trazabilidad a tareas queda en los
+nombres de los `Command`/`Handler` y en el historial de commits. Ver el detalle en
+[flujo-de-trabajo.md § 1](../flujo-de-trabajo.md#1-ciclo-spec-driven-development-spec-kit).

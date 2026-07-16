@@ -25,8 +25,15 @@ Cada funcionalidad recorre cuatro etapas antes de darse por terminada:
 3. **`/tasks`** — Se descompone en tareas pequeñas y verificables.
 4. **`/implement`** — Se codifica tarea por tarea, cada una con sus pruebas.
 
-Los artefactos (`spec.md`, `plan.md`, `tasks.md`) se versionan en Git y sirven como
-**evidencia y anexos** del informe académico.
+> **Nota de implementación.** El flujo conceptual (`/specify → /plan → /tasks → /implement`)
+> se siguió tal cual está descrito, pero en la práctica los tres artefactos (`spec.md`,
+> `plan.md`, `tasks.md`) **no se versionan como archivos sueltos por feature**: su contenido
+> se consolidó directamente en la documentación de ingeniería única del proyecto —
+> [requisitos.md](requisitos.md) hace de "spec" global, [arquitectura.md](arquitectura.md) y
+> los [ADR](decisiones/) hacen de "plan", y las tareas quedan implícitas en los commits y en
+> los `Command`/`Handler` de `Application` (cada uno nombrado según su RF). Se prefirió un
+> solo lugar de verdad versionado en Git antes que duplicar la misma información entre Spec
+> Kit y el informe.
 
 ## 2. Estrategia de ramas (Git Flow simplificado)
 
