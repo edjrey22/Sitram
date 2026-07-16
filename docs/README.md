@@ -44,6 +44,7 @@ Software** y pone énfasis en dos ejes transversales —**Seguridad de la inform
 | [arquitectura.md](arquitectura.md) | Estilo arquitectónico, capas, componentes, flujos y diagramas |
 | [modelo-datos.md](modelo-datos.md) | Diagrama Entidad-Relación, entidades, cifrado, índices e integridad |
 | [decisiones/](decisiones/) | Registro de Decisiones de Arquitectura (ADR) |
+| [frontend.md](frontend.md) | Mapa de páginas Blazor, rutas, políticas de autorización |
 | [convenciones.md](convenciones.md) | Normas de código C#/.NET, nombres, estructura, commits |
 | [glosario.md](glosario.md) | Términos del dominio municipal y técnicos |
 | [flujo-de-trabajo.md](flujo-de-trabajo.md) | Git Flow, ramas, PRs, CI/CD, ciclo SDD |
