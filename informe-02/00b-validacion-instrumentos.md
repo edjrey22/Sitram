@@ -96,22 +96,13 @@ c = número de valores de la escala
 
 ## 6. Flujo de aceptación de un instrumento
 
-```
-Construir/adaptar   ──►  Enviar a 3+ expertos  ──►  Calcular V de Aiken
-   instrumento                                              │
-                                                            ▼
-                                              ¿V ≥ 0.80 en todos los ítems?
-                                               │ No                    │ Sí
-                                               ▼                       ▼
-                                        Corregir ítems         Prueba piloto
-                                        y reenviar                    │
-                                                                      ▼
-                                                        ¿α ≥ 0.70 (si aplica)?
-                                                          │ No            │ Sí
-                                                          ▼               ▼
-                                                    Revisar ítems   Instrumento
-                                                                    APROBADO ✔
-```
+**Figura 13**
+
+*Flujo de aceptación de un instrumento de medición*
+
+![Figura 13](figuras/fig-flujo-aceptacion.png)
+
+*Nota.* Elaboración propia.
 
 Solo un instrumento **aprobado** (V ≥ 0.80 y, si aplica, α ≥ 0.70) se usa para recolectar los
 datos que sustentan los resultados del Capítulo IV.

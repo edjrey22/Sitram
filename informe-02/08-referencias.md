@@ -1,9 +1,6 @@
 # Referencias Bibliográficas
 
-> Formato APA (7.ª edición). **Nota para el autor:** las entradas marcadas con ⚠ requieren que
-> completes el **apellido del autor y el año exacto** a partir del enlace del repositorio antes
-> de la entrega final; los datos de la publicación (título, institución, URL) ya están
-> verificados.
+> Formato APA (7.ª edición).
 
 ## Normativa
 
@@ -47,30 +44,31 @@ https://scrumguides.org
 
 ## Antecedentes nacionales
 
-⚠ Autor por completar. (2020). *Sistema web de trámite documentario para la mejora de servicios
-a usuarios de la Unidad de Gestión Educativa Local – Tambopata 2020* [Tesis, Universidad
-Nacional Amazónica de Madre de Dios]. https://repositorio.unamad.edu.pe/handle/20.500.14070/894
+Panduro Vásquez, G. G., & Cjuno Rojas, J. A. (2020). *Sistema web de trámite documentario para
+la mejora de servicios a usuarios de la Unidad de Gestión Educativa Local – Tambopata 2020*
+[Tesis, Universidad Nacional Amazónica de Madre de Dios].
+https://repositorio.unamad.edu.pe/handle/20.500.14070/894
 
-⚠ Autor por completar. *Desarrollo e implementación de un sistema web basado en la metodología
-Scrum, para mejorar el proceso de autorizaciones e infracciones en la Dirección Regional de
-Transportes y Comunicaciones de Ayacucho* [Tesis, Universidad Autónoma del Perú].
+Aguilar Capcha, L. A. (2021). *Desarrollo e implementación de un sistema web basado en la
+metodología Scrum, para mejorar el proceso de autorizaciones e infracciones en la Dirección
+Regional de Transportes y Comunicaciones de Ayacucho* [Tesis, Universidad Autónoma del Perú].
 https://repositorio.autonoma.edu.pe/handle/20.500.13067/1318
 
-⚠ Autor por completar. (2022). *Sistema informático para mejorar la gestión de trámite
-documentario en el Gobierno Regional San Martín, Moyobamba 2022* [Tesis, Universidad César
-Vallejo]. https://alicia.concytec.gob.pe/vufind/Record/UCVV_b4772869c32af020a6fd2acc647db27a/Details
+Mejía Lavi, C. P. (2022). *Sistema informático para mejorar la gestión de trámite documentario
+en el Gobierno Regional San Martín, Moyobamba 2022* [Tesis, Universidad César Vallejo].
+https://alicia.concytec.gob.pe/vufind/Record/UCVV_b4772869c32af020a6fd2acc647db27a/Details
 
-⚠ Autor por completar. *Sistema web para la emisión de licencias de funcionamiento de los
+Lozano Correa, M. E. (2019). *Sistema web para la emisión de licencias de funcionamiento de los
 negocios de riesgo bajo o medio en la Municipalidad de Puente Piedra* [Tesis, Universidad César
 Vallejo]. https://alicia.concytec.gob.pe/vufind/Record/UCVV_18118e9efa80033590b24515c321cfef
 
-⚠ Autor por completar. (2016). *Implementación de un sistema web de gestión de trámite
+Herrera García, M. E. (2016). *Implementación de un sistema web de gestión de trámite
 documentario para optimizar los procesos en el área de mesa de partes en la Municipalidad
 Distrital de Bellavista-Sullana* [Tesis, Universidad Católica Los Ángeles de Chimbote].
 https://repositorio.uladech.edu.pe/handle/20.500.13032/2627
 
-⚠ Autor por completar. *Modelo de mejoras de e-servicios municipales* [Trabajo de
-investigación, Universidad Peruana de Ciencias Aplicadas].
+García Girón, A. J., & Hinostroza Lozada, R. X. (2018). *Modelo de mejoras de e-servicios
+municipales* [Trabajo de investigación, Universidad Peruana de Ciencias Aplicadas].
 https://repositorioacademico.upc.edu.pe/handle/10757/624820
 
 ## Antecedentes internacionales
@@ -79,17 +77,18 @@ Aguerre, C., et al. (2024). Open government, civic tech and digital platforms in
 A governance study of Montevideo's urban app 'Por Mi Barrio'. *Information Systems Journal*.
 https://onlinelibrary.wiley.com/doi/10.1111/isj.12468
 
-⚠ Autor por completar. (2024). *Citizen Trust in E-Government Strategies: Perspectives on
-E-Services at a South African Rural-Based Municipality*. ResearchGate.
+Ndzabela, O., Lukman, Y., & Yakobi, K. (2025). Citizen Trust in E-Government Strategies:
+Perspectives on E-Services at a South African Rural-Based Municipality. *International Journal
+of Public Administration in the Digital Age, 12*(1), 1–28.
 https://www.researchgate.net/publication/393885536
 
-⚠ Autor por completar. (2025). E-Government and Public Trust in Developing Countries: A
+Nyadzi, B. K., & Morris, J. C. (2025). E-Government and Public Trust in Developing Countries: A
 Systematic Review and Research Agenda. *International Journal of Public Administration, 49*(3).
 https://www.tandfonline.com/doi/full/10.1080/01900692.2025.2597453
 
-⚠ Autor por completar. (2024). Considerations for trustworthy cross-border interoperability of
-digital identity systems in developing countries. *AI & Society*.
-https://link.springer.com/article/10.1007/s00146-024-02008-9
+Ibor, A. E., Hooper, M., Maple, C., Crowcroft, J., & Epiphaniou, G. (2024). Considerations for
+trustworthy cross-border interoperability of digital identity systems in developing countries.
+*AI & Society*. https://link.springer.com/article/10.1007/s00146-024-02008-9
 
 Marjerison, R. K., et al. (2024). Public sector digitalization, corruption, and sustainability
 in the developing world: A scoping review. *Sustainable Development*.

@@ -48,7 +48,7 @@ function parseInline(text, baseOpts = {}) {
     if (!m) { runs.push(new TextRun({ text: rem, ...baseOpts })); break; }
     if (m.index > 0) runs.push(new TextRun({ text: rem.slice(0, m.index), ...baseOpts }));
     const tok = m[0];
-    if (tok.startsWith("**")) runs.push(new TextRun({ text: m[2], bold: true, ...baseOpts }));
+    if (tok.startsWith("**")) runs.push(new TextRun({ text: m[2], ...baseOpts })); // sin negrita: reservada a titulos
     else if (tok.startsWith("`")) runs.push(new TextRun({ text: m[3], font: "Courier New", ...baseOpts }));
     else if (tok.startsWith("[")) runs.push(new ExternalHyperlink({ children: [new TextRun({ text: m[4], style: "Hyperlink" })], link: m[5] }));
     else if (tok.startsWith("*")) runs.push(new TextRun({ text: m[6], italics: true, ...baseOpts }));
@@ -65,7 +65,7 @@ function isCaption(t) {
 // ¿la linea inicia un bloque nuevo? (para saber cuando cortar la union de un parrafo)
 function startsBlock(tr) {
   return tr === "" || tr === "---"
-    || /^(#{1,4})\s+/.test(tr) || tr.startsWith("|") || tr.startsWith(">")
+    || /^(#{1,5})\s+/.test(tr) || tr.startsWith("|") || tr.startsWith(">")
     || tr.startsWith("```") || tr.startsWith("<") || tr.startsWith("&")
     || tr.startsWith("![")
     || /^[-*]\s+/.test(tr) || /^\d+\.\s+/.test(tr);
@@ -77,7 +77,7 @@ function bodyPara(text, { hangingRefs = false } = {}) {
   if (hangingRefs) indent = { left: INDENT, hanging: INDENT };   // sangria francesa (referencias)
   else if (!caption) indent = { firstLine: INDENT };             // APA: sangria de primera linea
   return new Paragraph({
-    alignment: AlignmentType.LEFT,                               // APA: alineado a la izquierda
+    alignment: AlignmentType.JUSTIFIED,                          // texto justificado
     spacing: { after: 0, line: LINE },
     indent,
     keepNext: caption || undefined,
@@ -88,6 +88,7 @@ function bodyPara(text, { hangingRefs = false } = {}) {
 const HEADINGS = {
   1: HeadingLevel.HEADING_1, 2: HeadingLevel.HEADING_2,
   3: HeadingLevel.HEADING_3, 4: HeadingLevel.HEADING_4,
+  5: HeadingLevel.HEADING_5,
 };
 
 function splitRow(line) {
@@ -161,7 +162,7 @@ function parseMarkdown(file, { startMarker = null, breakOnH2 = false, hangingRef
     if (trimmed.startsWith("<") || trimmed.startsWith("&") || trimmed === "---" || trimmed === "") { i++; continue; }
 
     // encabezado
-    const hm = trimmed.match(/^(#{1,4})\s+(.*)$/);
+    const hm = trimmed.match(/^(#{1,5})\s+(.*)$/);
     if (hm) {
       const level = hm[1].length;
       const brk = (breakOnH2 && level === 2 && !firstHeading);
@@ -209,7 +210,7 @@ function parseMarkdown(file, { startMarker = null, breakOnH2 = false, hangingRef
         buf.push(lines[i].trim().replace(/^>\s?/, "")); i++;
       }
       out.push(new Paragraph({
-        alignment: AlignmentType.LEFT,
+        alignment: AlignmentType.JUSTIFIED,
         spacing: { after: 120, line: LINE },
         indent: { left: INDENT },
         border: { left: { style: BorderStyle.SINGLE, size: 12, color: "9CC3E0", space: 8 } },
@@ -225,6 +226,7 @@ function parseMarkdown(file, { startMarker = null, breakOnH2 = false, hangingRef
       i++;
       while (i < lines.length && !startsBlock(lines[i].trim())) { buf.push(lines[i].trim()); i++; }
       out.push(new Paragraph({
+        alignment: AlignmentType.JUSTIFIED,
         numbering: { reference: "bullets", level: 0 },
         spacing: { after: 40, line: LINE },
         children: parseInline(buf.join(" ")),
@@ -238,6 +240,7 @@ function parseMarkdown(file, { startMarker = null, breakOnH2 = false, hangingRef
       i++;
       while (i < lines.length && !startsBlock(lines[i].trim())) { buf.push(lines[i].trim()); i++; }
       out.push(new Paragraph({
+        alignment: AlignmentType.JUSTIFIED,
         numbering: { reference: "nums", level: 0 },
         spacing: { after: 40, line: LINE },
         children: parseInline(buf.join(" ")),
@@ -269,14 +272,27 @@ function rightLine(label, value) {
 }
 function gap(after) { return new Paragraph({ spacing: { after }, children: [] }); }
 
+function centeredImage(imgPath, maxWidth) {
+  if (!fs.existsSync(imgPath)) return centered("[ imagen no encontrada: " + imgPath + " ]", { size: 20, color: "AAAAAA", italics: true });
+  const data = fs.readFileSync(imgPath);
+  const { w, h } = pngDims(data);
+  const width = Math.min(w, maxWidth);
+  const height = Math.round(h * (width / w));
+  return new Paragraph({
+    alignment: AlignmentType.CENTER,
+    spacing: { after: 120 },
+    children: [new ImageRun({ type: "png", data, transformation: { width, height } })],
+  });
+}
+
 function portada() {
   return [
     centered(CFG.university, { bold: true, size: 30 }),
     centered(CFG.faculty, { bold: true, size: 24 }),
     centered(CFG.school, { bold: true, size: 22 }),
-    gap(240),
-    centered("[ Escudo institucional UNSCH ]", { size: 20, color: "AAAAAA", italics: true }),
-    gap(240),
+    gap(180),
+    centeredImage(path.join(DIR, "figuras", "escudo-unsch.png"), 140),
+    gap(180),
     centered(CFG.kind, { bold: true, size: 26 }),
     gap(80),
     centered("“" + CFG.title + "”", { bold: true, size: 26 }),
@@ -368,7 +384,10 @@ const doc = new Document({
         paragraph: { spacing: { before: 160, after: 80, line: LINE }, outlineLevel: 2 } },
       { id: "Heading4", name: "Heading 4", basedOn: "Normal", next: "Normal", quickFormat: true,
         run: { size: 24, bold: true, font: "Times New Roman", color: "000000" },
-        paragraph: { spacing: { before: 120, after: 80, line: LINE }, outlineLevel: 3 } },
+        paragraph: { indent: { firstLine: INDENT }, spacing: { before: 120, after: 80, line: LINE }, outlineLevel: 3 } },
+      { id: "Heading5", name: "Heading 5", basedOn: "Normal", next: "Normal", quickFormat: true,
+        run: { size: 24, bold: true, italics: true, font: "Times New Roman", color: "000000" },
+        paragraph: { indent: { firstLine: INDENT }, spacing: { before: 120, after: 80, line: LINE }, outlineLevel: 4 } },
     ],
   },
   numbering: {

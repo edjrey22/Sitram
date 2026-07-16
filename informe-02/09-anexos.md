@@ -401,3 +401,58 @@ la elección del frontend con Blazor.
 
 *(Pendiente de elaboración en la fase de construcción: pantallas de registro, catálogo de
 trámites, formulario de solicitud, seguimiento de estado y bandeja del funcionario.)*
+
+---
+
+## Anexo 8. Evidencia de despliegue en un entorno cloud (Azure)
+
+Como parte de la validación de la viabilidad técnica y operativa (§1.8), se documentó el
+proceso de aprovisionamiento y publicación de la plataforma en un entorno cloud (Microsoft
+Azure), verificando que la solución puede desplegarse fuera del entorno local de desarrollo.
+
+**Figura 6**
+
+*Registro del proveedor de recursos `Microsoft.OperationalInsights` en la suscripción de Azure*
+
+![Figura 6](figuras/fig6-azure-proveedor-recursos.png)
+
+*Nota.* Paso previo requerido por Azure antes de aprovisionar el recurso de sitio web.
+
+**Figura 7**
+
+*Creación del recurso de sitio web (App Service) en Azure*
+
+![Figura 7](figuras/fig7-azure-sitio-web.png)
+
+**Figura 8**
+
+*Configuración de los recursos de Azure asociados al despliegue*
+
+![Figura 8](figuras/fig8-azure-config-recursos.png)
+
+**Figura 9**
+
+*Publicación de la aplicación (subida del paquete) — primera etapa*
+
+![Figura 9](figuras/fig9-azure-publicacion-1.png)
+
+**Figura 10**
+
+*Publicación de la aplicación (subida del paquete) — segunda etapa*
+
+![Figura 10](figuras/fig10-azure-publicacion-2.png)
+
+**Figura 11**
+
+*Acceso a la URL pública provista por Azure tras la publicación*
+
+![Figura 11](figuras/fig11-azure-url-resultado.png)
+
+**Figura 12**
+
+*Sitio publicado, accesible desde la URL asignada por Azure*
+
+![Figura 12](figuras/fig12-azure-sitio-publicado.png)
+
+*Nota.* Elaboración propia. Evidencia capturada durante la fase de aprovisionamiento cloud del
+proyecto; complementa la viabilidad técnica descrita en el Capítulo I.
