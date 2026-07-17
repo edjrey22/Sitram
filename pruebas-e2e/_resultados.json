@@ -1,0 +1,74 @@
+[
+  {
+    "id": "TC-01",
+    "nombre": "Registro de ciudadano",
+    "rf": "RF-001",
+    "resultado": "OK",
+    "notas": "Usuario equispe100546, DNI 70100546, redirige a login con mensaje de éxito",
+    "captura": "tc01-registro-resultado.png"
+  },
+  {
+    "id": "TC-02",
+    "nombre": "Confirmación de correo y fijar contraseña",
+    "rf": "RF-001",
+    "resultado": "OK",
+    "notas": "Correo confirmado, contraseña definitiva establecida",
+    "captura": "tc02-confirmar-email-resultado.png"
+  },
+  {
+    "id": "TC-03",
+    "nombre": "Login de ciudadano",
+    "rf": "RF-002",
+    "resultado": "OK",
+    "notas": "Sesión iniciada como equispe100546, redirige al dashboard",
+    "captura": "tc03-login-ciudadano.png"
+  },
+  {
+    "id": "TC-04",
+    "nombre": "Iniciar trámite",
+    "rf": "RF-020",
+    "resultado": "OK",
+    "notas": "Trámite creado, redirige a http://localhost:5049/tramites/aeaeabbb-f36d-4bdb-826b-144c60560584",
+    "captura": "tc04-tramite-iniciado.png"
+  },
+  {
+    "id": "TC-05",
+    "nombre": "Consultar estado del trámite",
+    "rf": "RF-050",
+    "resultado": "OK",
+    "notas": "El detalle muestra el estado actual del expediente",
+    "captura": "tc05-seguimiento-tramite.png"
+  },
+  {
+    "id": "TC-06",
+    "nombre": "Login de administrador",
+    "rf": "RF-002",
+    "resultado": "OK",
+    "notas": "Sesión iniciada como administrador",
+    "captura": "tc06-login-admin.png"
+  },
+  {
+    "id": "TC-07",
+    "nombre": "Administrar catálogo de trámites (TUPA)",
+    "rf": "RF-010",
+    "resultado": "OK",
+    "notas": "El administrador accede al catálogo de tipos de trámite",
+    "captura": "tc07-administrar-tramites.png"
+  },
+  {
+    "id": "TC-08",
+    "nombre": "Crear cuenta de funcionario",
+    "rf": "RF-006",
+    "resultado": "OK",
+    "notas": "Funcionario rpalomino100546 creado con rol MesaDePartes",
+    "captura": "tc08-crear-funcionario-resultado.png"
+  },
+  {
+    "id": "TC-09",
+    "nombre": "Control de acceso: ciudadano sin permiso de administración",
+    "rf": "RNF-005",
+    "resultado": "OK",
+    "notas": "El acceso se deniega correctamente (RBAC en servidor)",
+    "captura": "tc09-acceso-denegado.png"
+  }
+]

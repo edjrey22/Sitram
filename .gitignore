@@ -37,3 +37,7 @@ DropDb.cs
 # ---- SO ----
 Thumbs.db
 .DS_Store
+
+# ---- Pruebas E2E (Playwright) ----
+pruebas-e2e/node_modules/
+pruebas-e2e/package-lock.json
