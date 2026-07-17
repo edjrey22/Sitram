@@ -1,10 +1,9 @@
 # Informe de Pruebas End-to-End — SITRAM
 
-> Documento independiente del informe académico principal (`informe-02/`). Registra la
-> ejecución de pruebas **end-to-end (E2E)**: flujos completos ejecutados en un navegador real
-> (Chromium vía Playwright) contra el frontend Blazor (`http://localhost:5049`) y el backend
-> real (API + PostgreSQL en Supabase), sin mocks ni simulaciones — exactamente como los usaría
-> un usuario final.
+> Registra la ejecución de pruebas **end-to-end (E2E)**: flujos completos ejecutados en un
+> navegador real (Chromium vía Playwright) contra el frontend Blazor (`http://localhost:5049`)
+> y el backend real (API + PostgreSQL en Supabase), sin mocks ni simulaciones — exactamente
+> como los usaría un usuario final.
 
 **Fecha de ejecución**: 2026-07-16
 **Entorno**: local (Development), base de datos PostgreSQL real (Supabase)
@@ -13,10 +12,10 @@
 
 ## 1. Alcance
 
-A diferencia de las pruebas unitarias y de integración (que ya cubren 146/146 casos a nivel
-de código y API, ver `informe-02/06-capitulo-4.md`), estas pruebas E2E verifican la
-**experiencia completa del usuario final** a través de la interfaz web real: llenar
-formularios, hacer clic, y comprobar que la pantalla resultante sea la correcta.
+Estas pruebas E2E verifican la **experiencia completa del usuario final** a través de la
+interfaz web real: llenar formularios, hacer clic, y comprobar que la pantalla resultante sea
+la correcta — a diferencia de una prueba unitaria o de integración, que verifica el código o
+la API por dentro, sin pasar por la interfaz.
 
 Se cubren los flujos críticos de tres roles: **Ciudadano**, **Administrador**, y un caso
 negativo de control de acceso.
@@ -71,10 +70,9 @@ tras guardar: "Contraseña actualizada."
 > **Nota metodológica**: en este entorno de prueba había SMTP real configurado (Gmail), por lo
 > que el enlace de verificación se envía de verdad y no queda en el log. Para automatizar la
 > lectura del enlace sin depender de una bandeja de correo externa, se desactivó
-> temporalmente `Smtp:Host` en los User Secrets locales (con lo que el sistema cae al
-> comportamiento de desarrollo documentado en `docs/errores-conocidos.md`: el cuerpo del
-> correo se registra en el log del servidor) y se restauró la configuración original
-> inmediatamente después de la corrida. No se modificó ninguna credencial.
+> temporalmente el SMTP en la configuración local (con lo que el sistema registra el cuerpo
+> del correo en el log del servidor en vez de enviarlo) y se restauró la configuración
+> original inmediatamente después de la corrida. No se modificó ninguna credencial.
 
 ---
 
@@ -174,8 +172,7 @@ ver ni usar el formulario de administración.
 Los 9 flujos de usuario final probados end-to-end —abarcando los tres roles principales del
 sistema (Ciudadano, Administrador, y el caso negativo de control de acceso)— funcionan
 correctamente sobre el sistema real (frontend Blazor + backend + PostgreSQL), sin necesidad de
-mocks. Esto complementa, con evidencia visual, los resultados ya reportados en el informe
-principal (146/146 pruebas automatizadas de dominio, aplicación e integración).
+mocks ni simulaciones.
 
 **Reproducibilidad**: el script [`e2e-test.js`](e2e-test.js) es determinista y puede
 re-ejecutarse en cualquier momento con `node e2e-test.js` (requiere `Sitram.Api` y
