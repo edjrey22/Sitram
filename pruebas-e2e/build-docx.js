@@ -11,7 +11,7 @@ const {
 
 const DIR = __dirname;
 const CONTENT_WIDTH = 9026;
-const LINE = 300;
+const LINE = 260;
 
 const CFG = {
   university: "UNIVERSIDAD NACIONAL DE SAN CRISTÓBAL DE HUAMANGA",
@@ -94,8 +94,7 @@ function parseMarkdown(file) {
       const level = hm[1].length;
       out.push(new Paragraph({
         heading: [HeadingLevel.HEADING_1, HeadingLevel.HEADING_2, HeadingLevel.HEADING_3, HeadingLevel.HEADING_4][level - 1],
-        pageBreakBefore: level === 2,
-        spacing: { before: 200, after: 120, line: LINE },
+        spacing: { before: level === 3 ? 120 : 80, after: 60, line: LINE },
         children: parseInline(hm[2].replace(/\*\*/g, "")),
       }));
       i++; continue;
@@ -107,11 +106,11 @@ function parseMarkdown(file) {
       if (fs.existsSync(imgPath)) {
         const data = fs.readFileSync(imgPath);
         const { w, h } = pngDims(data);
-        const width = Math.min(w, 620);
+        const width = Math.min(w, 460);
         const height = Math.round(h * (width / w));
         out.push(new Paragraph({
           alignment: AlignmentType.CENTER,
-          spacing: { after: 160, line: 240 },
+          spacing: { after: 80, line: 240 },
           children: [new ImageRun({ type: "png", data, transformation: { width, height } })],
         }));
       }
@@ -122,7 +121,7 @@ function parseMarkdown(file) {
       const tbl = [];
       while (i < lines.length && lines[i].trim().startsWith("|")) { tbl.push(lines[i]); i++; }
       const t = buildTable(tbl);
-      if (t) { out.push(t); out.push(new Paragraph({ spacing: { after: 160 }, children: [] })); }
+      if (t) { out.push(t); out.push(new Paragraph({ spacing: { after: 100 }, children: [] })); }
       continue;
     }
 
@@ -130,7 +129,7 @@ function parseMarkdown(file) {
       const buf = [];
       while (i < lines.length && lines[i].trim().startsWith(">")) { buf.push(lines[i].trim().replace(/^>\s?/, "")); i++; }
       out.push(new Paragraph({
-        spacing: { after: 160, line: LINE },
+        spacing: { after: 80, line: LINE },
         indent: { left: 720 },
         border: { left: { style: BorderStyle.SINGLE, size: 12, color: "9CC3E0", space: 8 } },
         children: parseInline(buf.join(" "), { italics: true }),
@@ -140,19 +139,19 @@ function parseMarkdown(file) {
 
     let lm = trimmed.match(/^\d+\.\s+(.*)$/);
     if (lm) {
-      out.push(new Paragraph({ spacing: { after: 60, line: LINE }, children: parseInline("• " + lm[1]) }));
+      out.push(new Paragraph({ spacing: { after: 20, line: LINE }, children: parseInline("• " + lm[1]) }));
       i++; continue;
     }
     lm = trimmed.match(/^[-*]\s+(.*)$/);
     if (lm) {
-      out.push(new Paragraph({ spacing: { after: 60, line: LINE }, children: parseInline("• " + lm[1]) }));
+      out.push(new Paragraph({ spacing: { after: 20, line: LINE }, children: parseInline("• " + lm[1]) }));
       i++; continue;
     }
 
     const buf = [trimmed];
     i++;
     while (i < lines.length && !startsBlock(lines[i].trim())) { buf.push(lines[i].trim()); i++; }
-    out.push(new Paragraph({ alignment: AlignmentType.JUSTIFIED, spacing: { after: 160, line: LINE }, children: parseInline(buf.join(" ")) }));
+    out.push(new Paragraph({ alignment: AlignmentType.JUSTIFIED, spacing: { after: 80, line: LINE }, children: parseInline(buf.join(" ")) }));
   }
   return out;
 }
@@ -184,19 +183,19 @@ function portada() {
     centered(CFG.university, { bold: true, size: 30 }),
     centered(CFG.faculty, { bold: true, size: 24 }),
     centered(CFG.school, { bold: true, size: 22 }),
-    gap(180),
-    centeredImage(ESCUDO, 140),
-    gap(180),
+    gap(100),
+    centeredImage(ESCUDO, 120),
+    gap(100),
     centered(CFG.kind, { bold: true, size: 26 }),
-    gap(80),
+    gap(60),
     centered("“" + CFG.title + "”", { bold: true, size: 26 }),
-    gap(360),
+    gap(160),
     rightLine("Presentado por:", CFG.author),
-    gap(60),
+    gap(30),
     rightLine("Docente:", CFG.teacher),
-    gap(60),
+    gap(30),
     rightLine("Curso:", CFG.course),
-    gap(400),
+    gap(160),
     centered(CFG.place, { size: 24 }),
     centered(CFG.date, { size: 24 }),
     new Paragraph({ pageBreakBefore: true, children: [] }),
@@ -238,19 +237,19 @@ const doc = new Document({
       // APA 7: nivel 1 centrado y negrita
       { id: "Heading1", name: "Heading 1", basedOn: "Normal", next: "Normal", quickFormat: true,
         run: { size: 28, bold: true, font: "Times New Roman", color: "000000" },
-        paragraph: { alignment: AlignmentType.CENTER, spacing: { before: 0, after: 160, line: LINE }, outlineLevel: 0 } },
+        paragraph: { alignment: AlignmentType.CENTER, spacing: { before: 0, after: 80, line: LINE }, outlineLevel: 0 } },
       // APA 7: nivel 2 alineado a la izquierda y negrita
       { id: "Heading2", name: "Heading 2", basedOn: "Normal", next: "Normal", quickFormat: true,
         run: { size: 26, bold: true, font: "Times New Roman", color: "000000" },
-        paragraph: { spacing: { before: 240, after: 120, line: LINE }, outlineLevel: 1 } },
+        paragraph: { spacing: { before: 120, after: 60, line: LINE }, outlineLevel: 1 } },
       // APA 7: nivel 3 alineado a la izquierda, negrita cursiva
       { id: "Heading3", name: "Heading 3", basedOn: "Normal", next: "Normal", quickFormat: true,
         run: { size: 24, bold: true, italics: true, font: "Times New Roman", color: "000000" },
-        paragraph: { spacing: { before: 200, after: 100, line: LINE }, outlineLevel: 2 } },
+        paragraph: { spacing: { before: 100, after: 40, line: LINE }, outlineLevel: 2 } },
       // APA 7: nivel 4 con sangria, negrita
       { id: "Heading4", name: "Heading 4", basedOn: "Normal", next: "Normal", quickFormat: true,
         run: { size: 24, bold: true, font: "Times New Roman", color: "000000" },
-        paragraph: { indent: { firstLine: 720 }, spacing: { before: 160, after: 80, line: LINE }, outlineLevel: 3 } },
+        paragraph: { indent: { firstLine: 720 }, spacing: { before: 80, after: 40, line: LINE }, outlineLevel: 3 } },
     ],
   },
   sections: [{
